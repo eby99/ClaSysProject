@@ -1,0 +1,1086 @@
+@model RegistrationPortal.ViewModels.EditUserViewModel
+@{
+    ViewData["Title"] = "Edit User";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - ClasySys Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --admin-gradient: linear-gradient(135deg, #f56565 0%, #ed8936 50%, #ecc94b 100%);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-primary: rgba(255, 255, 255, 0.95);
+            --text-secondary: rgba(255, 255, 255, 0.8);
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --success-color: #10B981;
+            --error-color: #ff6b6b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--admin-gradient);
+            background-attachment: fixed;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(245, 101, 101, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(237, 137, 54, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(236, 201, 75, 0.3) 0%, transparent 50%);
+            animation: gradientShift 20s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @@keyframes gradientShift {
+            0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
+            25% { opacity: 0.8; transform: scale(1.05) rotate(1deg); }
+            50% { opacity: 0.9; transform: scale(0.95) rotate(-1deg); }
+            75% { opacity: 0.85; transform: scale(1.02) rotate(0.5deg); }
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .edit-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            border-radius: 24px;
+            border: none;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            padding: 2.5rem;
+            width: 100%;
+            color: var(--text-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .form-grid {
+            margin-bottom: 2rem;
+        }
+
+        @@media (min-width: 768px) {
+            .edit-card {
+                padding: 3rem;
+            }
+
+            .container {
+                padding: 3rem;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .required {
+            color: var(--error-color);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-control::placeholder {
+            color: var(--text-muted);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 0.5rem 0;
+        }
+
+        .checkbox-wrapper {
+            position: relative;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+        }
+
+        .checkbox-wrapper input[type="checkbox"]:checked {
+            background: var(--success-color);
+            border-color: var(--success-color);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .alert-error {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 107, 107, 0.4);
+            font-weight: 600;
+        }
+
+        .text-danger {
+            color: #ff6b6b;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
+
+        @@media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .edit-card {
+                padding: 1.5rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .container {
+                padding: 0.5rem;
+            }
+
+            .edit-card {
+                padding: 1rem;
+                border-radius: 16px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .form-control {
+                padding: 0.875rem;
+                font-size: 0.95rem;
+            }
+
+            select.form-control {
+                padding-right: 35px;
+            }
+
+            .btn {
+                padding: 0.875rem 1.5rem;
+                font-size: 0.95rem;
+            }
+
+            .form-label {
+                font-size: 0.9rem;
+            }
+
+            .text-danger {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="edit-card">
+            <div class="header">
+                <h1><i class="fas fa-user-edit"></i> Edit User</h1>
+                <p>Modify user information and settings</p>
+            </div>
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Please correct the errors below.
+                </div>
+            }
+
+            <form asp-action="EditUser" method="post">
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.UserID)
+
+                <div class="form-grid">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <div class="form-group">
+                        <label asp-for="FirstName" class="form-label">
+                            First Name <span class="required">*</span>
+                        </label>
+                        <input asp-for="FirstName" class="form-control" placeholder="Enter first name" required />
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <div class="form-group">
+                        <label asp-for="LastName" class="form-label">
+                            Last Name <span class="required">*</span>
+                        </label>
+                        <input asp-for="LastName" class="form-control" placeholder="Enter last name" required />
+                                <span asp-validation-for="LastName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label asp-for="Username" class="form-label">
+                                    Username <span class="required">*</span>
+                                </label>
+                                <input asp-for="Username" class="form-control" placeholder="Enter username" readonly
+                                       style="background: rgba(255, 255, 255, 0.05); cursor: not-allowed;" />
+                                <small style="color: var(--text-muted); font-size: 0.8rem;">Username cannot be changed</small>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <div class="form-group">
+                                <label asp-for="Email" class="form-label">
+                                    Email Address <span class="required">*</span>
+                                </label>
+                                <input asp-for="Email" type="email" class="form-control" placeholder="Enter email address" required />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <div class="form-group">
+                                <label asp-for="PhoneNumber" class="form-label">
+                                    Phone Number
+                                </label>
+                                <input asp-for="PhoneNumber" type="tel" class="form-control" placeholder="Enter phone number" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <div class="form-group">
+                                <label asp-for="DateOfBirth" class="form-label">
+                                    Date of Birth
+                                </label>
+                                <input asp-for="DateOfBirth" type="date" class="form-control" id="dobInput" />
+                                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <div class="form-group">
+                                <label asp-for="Gender" class="form-label">
+                                    Gender
+                                </label>
+                                <select asp-for="Gender" class="form-control">
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                    <option value="PreferNot">Prefer not to say</option>
+                                </select>
+                                <span asp-validation-for="Gender" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <div class="form-group">
+                                <label asp-for="Country" class="form-label">
+                                    Country
+                                </label>
+                                <select asp-for="Country" class="form-control">
+                                    <option value="">Select Country</option>
+                                    <option value="US">United States</option>
+                                    <option value="UK">United Kingdom</option>
+                                    <option value="CA">Canada</option>
+                                    <option value="AU">Australia</option>
+                                    <option value="IN">India</option>
+                                    <option value="DE">Germany</option>
+                                    <option value="FR">France</option>
+                                    <option value="JP">Japan</option>
+                                    <option value="BR">Brazil</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <span asp-validation-for="Country" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <div class="form-group">
+                                <label asp-for="StreetAddress" class="form-label">
+                                    Street Address
+                                </label>
+                                <input asp-for="StreetAddress" class="form-control" placeholder="Enter street address" />
+                                <span asp-validation-for="StreetAddress" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <div class="form-group">
+                                <label asp-for="City" class="form-label">
+                                    City
+                                </label>
+                                <input asp-for="City" class="form-control" placeholder="Enter city" />
+                                <span asp-validation-for="City" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <div class="form-group">
+                                <label asp-for="State" class="form-label">
+                                    State/Province
+                                </label>
+                                <input asp-for="State" class="form-control" placeholder="Enter state" />
+                                <span asp-validation-for="State" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <div class="form-group">
+                                <label asp-for="ZipCode" class="form-label">
+                                    ZIP/Postal Code
+                                </label>
+                                <input asp-for="ZipCode" class="form-control" placeholder="Enter ZIP code" />
+                                <span asp-validation-for="ZipCode" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label asp-for="Bio" class="form-label">
+                                    Bio
+                                </label>
+                                <textarea asp-for="Bio" class="form-control" rows="4" placeholder="Enter bio..."></textarea>
+                                <span asp-validation-for="Bio" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Account Settings</label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-wrapper">
+                                        <input asp-for="IsActive" type="checkbox" />
+                                    </div>
+                                    <label asp-for="IsActive">Account is active</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Communication Preferences</label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-wrapper">
+                                        <input asp-for="ReceiveNewsletter" type="checkbox" />
+                                    </div>
+                                    <label asp-for="ReceiveNewsletter">Receive newsletters</label>
+                                </div>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-wrapper">
+                                        <input asp-for="ReceiveSMS" type="checkbox" />
+                                    </div>
+                                    <label asp-for="ReceiveSMS">Receive SMS notifications</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                    <a href="@Url.Action("Index")" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-focus on first name field
+            const firstNameField = document.querySelector('input[name="FirstName"]');
+            if (firstNameField) {
+                firstNameField.focus();
+            }
+
+            // Name field validation - only alphabets
+            const nameFields = document.querySelectorAll('input[name="FirstName"], input[name="LastName"]');
+            nameFields.forEach(field => {
+                field.addEventListener('input', function(e) {
+                    // Remove any non-alphabetic characters
+                    let value = e.target.value;
+                    let cleanValue = '';
+                    for (let i = 0; i < value.length; i++) {
+                        let char = value.charAt(i);
+                        if ((char >= 'A' && char <= 'Z') || (char >= 'a' && char <= 'z')) {
+                            cleanValue += char;
+                        }
+                    }
+                    if (value !== cleanValue) {
+                        e.target.value = cleanValue;
+                    }
+                });
+            });
+
+            // Phone number validation - only 10 digits
+            const phoneField = document.querySelector('input[name="PhoneNumber"]');
+            if (phoneField) {
+                phoneField.addEventListener('input', function(e) {
+                    // Remove any non-numeric characters
+                    let value = e.target.value;
+                    let cleanValue = '';
+                    for (let i = 0; i < value.length; i++) {
+                        let char = value.charAt(i);
+                        if (char >= '0' && char <= '9') {
+                            cleanValue += char;
+                        }
+                    }
+                    // Limit to 10 digits
+                    if (cleanValue.length > 10) {
+                        cleanValue = cleanValue.substring(0, 10);
+                    }
+                    if (value !== cleanValue) {
+                        e.target.value = cleanValue;
+                    }
+                });
+
+                // Validation on blur
+                phoneField.addEventListener('blur', function(e) {
+                    const value = e.target.value;
+                    const errorSpan = e.target.parentNode.querySelector('.text-danger');
+                    if (errorSpan) {
+                        if (value.length > 0 && value.length !== 10) {
+                            errorSpan.textContent = 'Phone number must be exactly 10 digits.';
+                            e.target.classList.add('error');
+                        } else {
+                            errorSpan.textContent = '';
+                            e.target.classList.remove('error');
+                        }
+                    }
+                });
+            }
+
+            // State validation - alphabets and spaces only
+            const stateField = document.querySelector('input[name="State"]');
+            if (stateField) {
+                stateField.addEventListener('input', function(e) {
+                    let value = e.target.value;
+                    let cleanValue = '';
+                    for (let i = 0; i < value.length; i++) {
+                        let char = value.charAt(i);
+                        if ((char >= 'A' && char <= 'Z') || (char >= 'a' && char <= 'z') || char === ' ') {
+                            cleanValue += char;
+                        }
+                    }
+                    if (value !== cleanValue) {
+                        e.target.value = cleanValue;
+                    }
+                });
+            }
+
+            // City validation - alphabets and spaces only
+            const cityField = document.querySelector('input[name="City"]');
+            if (cityField) {
+                cityField.addEventListener('input', function(e) {
+                    let value = e.target.value;
+                    let cleanValue = '';
+                    for (let i = 0; i < value.length; i++) {
+                        let char = value.charAt(i);
+                        if ((char >= 'A' && char <= 'Z') || (char >= 'a' && char <= 'z') || char === ' ') {
+                            cleanValue += char;
+                        }
+                    }
+                    if (value !== cleanValue) {
+                        e.target.value = cleanValue;
+                    }
+                });
+            }
+
+            // ZIP code validation - exactly 6 digits
+            const zipField = document.querySelector('input[name="ZipCode"]');
+            if (zipField) {
+                zipField.addEventListener('input', function(e) {
+                    let value = e.target.value;
+                    let cleanValue = '';
+                    for (let i = 0; i < value.length; i++) {
+                        let char = value.charAt(i);
+                        if (char >= '0' && char <= '9') {
+                            cleanValue += char;
+                        }
+                    }
+                    // Limit to 6 digits
+                    if (cleanValue.length > 6) {
+                        cleanValue = cleanValue.substring(0, 6);
+                    }
+                    if (value !== cleanValue) {
+                        e.target.value = cleanValue;
+                    }
+                });
+
+                // Validation on blur
+                zipField.addEventListener('blur', function(e) {
+                    const value = e.target.value;
+                    const errorSpan = e.target.parentNode.querySelector('.text-danger');
+                    if (errorSpan) {
+                        if (value.length > 0 && value.length !== 6) {
+                            errorSpan.textContent = 'ZIP/Postal code must be exactly 6 digits.';
+                            e.target.classList.add('error');
+                        } else {
+                            errorSpan.textContent = '';
+                            e.target.classList.remove('error');
+                        }
+                    }
+                });
+            }
+
+            // Date of Birth validation and restrictions
+            const dobField = document.querySelector('input[name="DateOfBirth"]');
+            if (dobField) {
+                // Set min and max dates (18-80 years old)
+                const today = new Date();
+                // Max date: Latest date for someone to be at least 18 years old
+                // Subtract 18 years and 1 day to ensure they are definitely 18+
+                const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate() - 1);
+                // Min date: Earliest date for someone to be at most 80 years old
+                const minDate = new Date(today.getFullYear() - 80, today.getMonth(), today.getDate());
+
+                // For HTML5 date input: max prevents selecting dates after this (too young)
+                // min prevents selecting dates before this (too old)
+                dobField.max = maxDate.toISOString().split('T')[0];
+                dobField.min = minDate.toISOString().split('T')[0];
+
+                // Debug: Log the actual dates being set
+                console.log('DOB Field restrictions set:');
+                console.log('Min date (80 years ago):', dobField.min);
+                console.log('Max date (18 years ago):', dobField.max);
+                console.log('Today:', today.toISOString().split('T')[0]);
+
+                // Add input event listener for real-time validation
+                dobField.addEventListener('input', function(e) {
+                    validateAge(e.target);
+                });
+
+                dobField.addEventListener('blur', function(e) {
+                    validateAge(e.target);
+                });
+
+                function validateAge(field) {
+                    const value = field.value;
+                    const errorSpan = field.parentNode.querySelector('.text-danger');
+                    if (errorSpan && value) {
+                        const birthDate = new Date(value);
+                        const currentDate = new Date();
+
+                        // Calculate precise age
+                        let age = currentDate.getFullYear() - birthDate.getFullYear();
+                        const monthDiff = currentDate.getMonth() - birthDate.getMonth();
+
+                        // Adjust age if birthday hasn't occurred this year
+                        if (monthDiff < 0 || (monthDiff === 0 && currentDate.getDate() < birthDate.getDate())) {
+                            age--;
+                        }
+
+                        // Check age range (18-80 years)
+                        if (age < 18) {
+                            errorSpan.textContent = 'User must be at least 18 years old.';
+                            field.classList.add('error');
+                        } else if (age > 80) {
+                            errorSpan.textContent = 'User cannot be older than 80 years.';
+                            field.classList.add('error');
+                        } else {
+                            errorSpan.textContent = '';
+                            field.classList.remove('error');
+                        }
+                    } else if (errorSpan && !value) {
+                        errorSpan.textContent = '';
+                        field.classList.remove('error');
+                    }
+                }
+            }
+
+            // Real-time uniqueness validation with AJAX
+            const currentUserId = document.querySelector('input[name="UserID"]').value;
+
+            async function checkUniqueness(field, value, fieldElement) {
+                const errorSpan = fieldElement.parentNode.querySelector('.text-danger');
+
+                if (!value || value.trim() === '') {
+                    errorSpan.textContent = '';
+                    fieldElement.classList.remove('error');
+                    return true;
+                }
+
+                try {
+                    const response = await fetch('/Admin/CheckUniqueness', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                        },
+                        body: `field=${field}&value=${encodeURIComponent(value)}&currentUserId=${currentUserId}`
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        if (!result.isUnique) {
+                            const fieldName = field === 'phonenumber' ? 'phone number' : field.toLowerCase();
+                            errorSpan.textContent = `This ${fieldName} is already taken by another user.`;
+                            fieldElement.classList.add('error');
+                            fieldElement.setAttribute('data-unique', 'false');
+                            return false;
+                        } else {
+                            errorSpan.textContent = '';
+                            fieldElement.classList.remove('error');
+                            fieldElement.setAttribute('data-unique', 'true');
+                            return true;
+                        }
+                    } else {
+                        const fieldName = field === 'phonenumber' ? 'phone number' : field.toLowerCase();
+                        errorSpan.textContent = `Error checking ${fieldName} availability.`;
+                        fieldElement.classList.add('error');
+                        fieldElement.setAttribute('data-unique', 'false');
+                        return false;
+                    }
+                } catch (error) {
+                    console.error('Uniqueness check error:', error);
+                    const fieldName = field === 'phonenumber' ? 'phone number' : field.toLowerCase();
+                    errorSpan.textContent = `Unable to verify ${fieldName} availability.`;
+                    fieldElement.classList.add('error');
+                    fieldElement.setAttribute('data-unique', 'false');
+                    return false;
+                }
+            }
+
+            // Username field is readonly in edit mode, no uniqueness check needed
+            const usernameField = document.querySelector('input[name="Username"]');
+            if (usernameField && !usernameField.readOnly) {
+                let usernameTimeout;
+                usernameField.addEventListener('input', function(e) {
+                    clearTimeout(usernameTimeout);
+                    const value = e.target.value.trim();
+                    const errorSpan = e.target.parentNode.querySelector('.text-danger');
+
+                    if (value.length >= 3) {
+                        errorSpan.textContent = 'Checking username...';
+                        e.target.classList.remove('error');
+
+                        usernameTimeout = setTimeout(() => {
+                            checkUniqueness('username', value, e.target);
+                        }, 800);
+                    } else {
+                        errorSpan.textContent = '';
+                        e.target.classList.remove('error');
+                    }
+                });
+            }
+
+            // Email uniqueness check
+            const emailField = document.querySelector('input[name="Email"]');
+            if (emailField) {
+                let emailTimeout;
+                emailField.addEventListener('input', function(e) {
+                    clearTimeout(emailTimeout);
+                    const value = e.target.value.trim();
+                    const errorSpan = e.target.parentNode.querySelector('.text-danger');
+
+                    // Basic email format validation - using simple includes check
+                    const hasAt = value.includes('@@');
+                    const hasDot = value.includes('.');
+                    const atIndex = value.indexOf('@@');
+                    const dotIndex = value.lastIndexOf('.');
+                    const isValidFormat = hasAt && hasDot && atIndex > 0 && dotIndex > atIndex && dotIndex < value.length - 1;
+                    if (value && isValidFormat) {
+                        errorSpan.textContent = 'Checking email availability...';
+                        e.target.classList.remove('error');
+
+                        emailTimeout = setTimeout(() => {
+                            checkUniqueness('email', value, e.target);
+                        }, 800);
+                    } else if (value && !isValidFormat) {
+                        errorSpan.textContent = 'Please enter a valid email address.';
+                        e.target.classList.add('error');
+                    } else {
+                        errorSpan.textContent = '';
+                        e.target.classList.remove('error');
+                    }
+                });
+
+                // Also validate on blur
+                emailField.addEventListener('blur', function(e) {
+                    clearTimeout(emailTimeout);
+                    const value = e.target.value.trim();
+                    const errorSpan = e.target.parentNode.querySelector('.text-danger');
+
+                    if (value) {
+                        // Basic email format validation
+                        const hasAt = value.includes('@@');
+                        const hasDot = value.includes('.');
+                        const atIndex = value.indexOf('@@');
+                        const dotIndex = value.lastIndexOf('.');
+                        const isValidFormat = hasAt && hasDot && atIndex > 0 && dotIndex > atIndex && dotIndex < value.length - 1;
+                        if (isValidFormat) {
+                            checkUniqueness('email', value, e.target);
+                        } else {
+                            errorSpan.textContent = 'Please enter a valid email address.';
+                            e.target.classList.add('error');
+                        }
+                    }
+                });
+            }
+
+            // Enhanced phone uniqueness check
+            if (phoneField) {
+                let phoneTimeout;
+                phoneField.addEventListener('input', function(e) {
+                    // First apply the existing digit-only validation
+                    let value = e.target.value;
+                    let cleanValue = '';
+                    for (let i = 0; i < value.length; i++) {
+                        let char = value.charAt(i);
+                        if (char >= '0' && char <= '9') {
+                            cleanValue += char;
+                        }
+                    }
+                    if (cleanValue.length > 10) {
+                        cleanValue = cleanValue.substring(0, 10);
+                    }
+                    if (value !== cleanValue) {
+                        e.target.value = cleanValue;
+                    }
+
+                    // Then check uniqueness
+                    clearTimeout(phoneTimeout);
+                    const errorSpan = e.target.parentNode.querySelector('.text-danger');
+
+                    if (cleanValue.length === 10) {
+                        errorSpan.textContent = 'Checking phone number availability...';
+                        e.target.classList.remove('error');
+
+                        phoneTimeout = setTimeout(() => {
+                            checkUniqueness('phonenumber', cleanValue, e.target);
+                        }, 800);
+                    } else if (cleanValue.length > 0 && cleanValue.length < 10) {
+                        errorSpan.textContent = 'Phone number must be exactly 10 digits.';
+                        e.target.classList.add('error');
+                    } else {
+                        errorSpan.textContent = '';
+                        e.target.classList.remove('error');
+                    }
+                });
+
+                // Also check on blur for complete validation
+                phoneField.addEventListener('blur', function(e) {
+                    clearTimeout(phoneTimeout);
+                    const value = e.target.value.trim();
+                    const errorSpan = e.target.parentNode.querySelector('.text-danger');
+
+                    if (value.length === 10) {
+                        checkUniqueness('phonenumber', value, e.target);
+                    } else if (value.length > 0 && value.length !== 10) {
+                        errorSpan.textContent = 'Phone number must be exactly 10 digits.';
+                        e.target.classList.add('error');
+                    }
+                });
+            }
+
+            // Disable communication preferences for admin
+            const newsletterCheckbox = document.querySelector('input[name="ReceiveNewsletter"]');
+            const smsCheckbox = document.querySelector('input[name="ReceiveSMS"]');
+            if (newsletterCheckbox) {
+                newsletterCheckbox.disabled = true;
+                newsletterCheckbox.style.opacity = '0.5';
+            }
+            if (smsCheckbox) {
+                smsCheckbox.disabled = true;
+                smsCheckbox.style.opacity = '0.5';
+            }
+
+            // Form submission validation
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    let hasErrors = false;
+                    const errorFields = [];
+
+                    // Check for validation errors
+                    const errorElements = form.querySelectorAll('.form-control.error');
+                    if (errorElements.length > 0) {
+                        hasErrors = true;
+                        errorElements.forEach(el => {
+                            const fieldName = el.getAttribute('name');
+                            if (fieldName) {
+                                errorFields.push(fieldName);
+                            }
+                        });
+                    }
+
+                    // Check for uniqueness validation in progress or failed
+                    const emailField = form.querySelector('input[name="Email"]');
+                    const phoneField = form.querySelector('input[name="PhoneNumber"]');
+
+                    if (emailField && emailField.value.trim()) {
+                        const emailUnique = emailField.getAttribute('data-unique');
+                        if (emailUnique === 'false') {
+                            hasErrors = true;
+                            errorFields.push('Email');
+                        }
+                    }
+
+                    if (phoneField && phoneField.value.trim()) {
+                        const phoneUnique = phoneField.getAttribute('data-unique');
+                        if (phoneUnique === 'false') {
+                            hasErrors = true;
+                            errorFields.push('PhoneNumber');
+                        }
+                    }
+
+                    if (hasErrors) {
+                        e.preventDefault();
+
+                        // Show a consolidated error message
+                        let alertDiv = document.querySelector('.validation-alert');
+                        if (!alertDiv) {
+                            alertDiv = document.createElement('div');
+                            alertDiv.className = 'alert alert-error validation-alert';
+                            alertDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> <span class="alert-message"></span>';
+                            form.insertBefore(alertDiv, form.firstChild);
+                        }
+
+                        const messageSpan = alertDiv.querySelector('.alert-message');
+                        if (errorFields.length > 0) {
+                            messageSpan.textContent = `Please fix the following fields before saving: ${errorFields.join(', ')}`;
+                        } else {
+                            messageSpan.textContent = 'Please fix all validation errors before saving.';
+                        }
+
+                        // Scroll to the top to show the error
+                        alertDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });
+            }
+        });
+    </script>
+
+    <style>
+        .form-control.error {
+            border-color: #ff6b6b !important;
+            background: rgba(255, 107, 107, 0.1) !important;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2) !important;
+        }
+
+        /* Style dropdown to match other fields but keep text readable */
+        select.form-control {
+            color: white !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 2px solid rgba(255, 255, 255, 0.2) !important;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23ffffff" d="M2 0L0 2h4zM2 5L0 3h4z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 12px;
+            padding-right: 40px;
+            text-shadow: none;
+            transition: all 0.3s ease;
+        }
+
+        select.form-control option {
+            color: #000000 !important;
+            background-color: #ffffff !important;
+            font-weight: 500;
+            padding: 8px 12px;
+        }
+
+        select.form-control:focus {
+            background: rgba(255, 255, 255, 0.15) !important;
+            color: white !important;
+            border-color: rgba(255, 255, 255, 0.5) !important;
+            box-shadow: 0 8px 32px rgba(255, 255, 255, 0.1) !important;
+            transform: translateY(-2px);
+            outline: none;
+        }
+
+        select.form-control:hover {
+            background: rgba(255, 255, 255, 0.12) !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+        }
+
+        /* Ensure dropdown arrows are visible */
+        select.form-control::-ms-expand {
+            display: none;
+        }
+
+        /* Style disabled checkboxes */
+        input[type="checkbox"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        input[type="checkbox"]:disabled + label {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .text-danger {
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @@keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</body>
+</html>

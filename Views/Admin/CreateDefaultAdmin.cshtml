@@ -1,0 +1,90 @@
+@{
+    ViewData["Title"] = "Create Default Admin";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 50px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 500px;
+            text-align: center;
+        }
+        .success {
+            color: #10B981;
+            border: 2px solid #10B981;
+            background: rgba(16, 185, 129, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .error {
+            color: #ff6b6b;
+            border: 2px solid #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Admin Account Setup</h1>
+
+        @if (ViewBag.Message != null)
+        {
+            <div class="@(ViewBag.Success == true ? "success" : "error")">
+                @ViewBag.Message
+            </div>
+        }
+
+        @if (ViewBag.Success == true)
+        {
+            <p>You can now login to the admin panel with the credentials shown above.</p>
+            <a href="@Url.Action("AdminLogin", "Admin")" class="btn">Go to Admin Login</a>
+        }
+        else
+        {
+            <p>Click the button below to create a default admin account:</p>
+            <a href="@Url.Action("CreateDefaultAdmin", "Admin")" class="btn">Create Default Admin</a>
+        }
+
+        <br><br>
+        <a href="@Url.Action("Login", "Account")" class="btn" style="background: #6c757d;">Back to Main Login</a>
+    </div>
+</body>
+</html>

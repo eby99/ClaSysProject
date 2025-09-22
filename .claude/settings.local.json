@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__ide__getDiagnostics",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet run:*)",
+      "Bash(taskkill:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "WebFetch(domain:localhost)",
+      "Bash(curl:*)",
+      "Bash(Get-Process -Name \"RegistrationPortal\")",
+      "Bash(Stop-Process -Force)",
+      "Bash(pkill:*)",
+      "Bash(wmic process where:*)",
+      "Bash(tasklist)",
+      "Bash(tasklist:*)",
+      "Bash(Get-Process -Name \"dotnet\" -ErrorAction SilentlyContinue)",
+      "Bash(Get-Process -Name \"RegistrationPortal\" -ErrorAction SilentlyContinue)",
+      "Bash(cmd /c:*)",
+      "Bash(powershell:*)",
+      "Bash(dotnet clean:*)",
+      "Bash(dir \"E:\\ClasySys\\ClasysProj\\RegPortalNEW\\RegistrationPortal\" \")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

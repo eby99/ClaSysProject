@@ -1,0 +1,933 @@
+@model RegistrationPortal.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - ClasySys</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+</head>
+<body>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            --secondary-gradient: linear-gradient(45deg, #ff6b6b, #ee5a52, #ff8a80);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-primary: rgba(255, 255, 255, 0.95);
+            --text-secondary: rgba(255, 255, 255, 0.8);
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --success-color: #10B981;
+            --error-color: #ff6b6b;
+            --warning-color: #F59E0B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--primary-gradient);
+            background-attachment: fixed;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 107, 107, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(240, 147, 251, 0.3) 0%, transparent 50%);
+            animation: gradientShift 20s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @@keyframes gradientShift {
+            0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
+            25% { opacity: 0.8; transform: scale(1.05) rotate(1deg); }
+            50% { opacity: 0.9; transform: scale(0.95) rotate(-1deg); }
+            75% { opacity: 0.85; transform: scale(1.02) rotate(0.5deg); }
+        }
+
+        /* Floating particles */
+        .floating-particles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            filter: blur(1px);
+            animation: float 25s infinite linear;
+        }
+
+        .particle:nth-child(odd) {
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 70%);
+        }
+
+        .particle:nth-child(even) {
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.3) 0%, rgba(102, 126, 234, 0.1) 70%);
+        }
+
+        @@keyframes float {
+            0% { transform: translateY(100vh) translateX(0) rotate(0deg) scale(0); opacity: 0; }
+            10% { opacity: 1; transform: translateY(90vh) translateX(20px) rotate(36deg) scale(1); }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) translateX(100px) rotate(360deg) scale(0); opacity: 0; }
+        }
+
+        /* Main container */
+        .container-fluid {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1rem;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 450px;
+            animation: slideInUp 1s ease-out;
+        }
+
+        @@keyframes slideInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(60px) scale(0.9);
+                filter: blur(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        .login-card {
+            backdrop-filter: blur(25px) saturate(180%);
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.15) 0%, 
+                rgba(255, 255, 255, 0.05) 50%, 
+                rgba(255, 255, 255, 0.1) 100%
+            );
+            border-radius: 32px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 
+                0 32px 64px rgba(0, 0, 0, 0.25),
+                0 16px 32px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.4) 20%, 
+                rgba(255, 255, 255, 0.6) 50%, 
+                rgba(255, 255, 255, 0.4) 80%, 
+                transparent 100%
+            );
+        }
+
+        /* Header section */
+        .login-header {
+            text-align: center;
+            padding: 3rem 2.5rem 2rem;
+        }
+
+        .logo-container {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: var(--secondary-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 12px 24px rgba(255, 107, 107, 0.4);
+            animation: logoFloat 3s ease-in-out infinite alternate;
+        }
+
+        @@keyframes logoFloat {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-5px) scale(1.05); }
+        }
+
+        .logo-container i {
+            font-size: 2rem;
+            color: white;
+        }
+
+        .login-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 50%, #e8f0ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+
+        @@keyframes titleGlow {
+            0% { filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3)); }
+            100% { filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5)); }
+        }
+
+        .login-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        /* Alert styles */
+        .alert {
+            border-radius: 16px;
+            border: none;
+            backdrop-filter: blur(10px);
+            margin: 1rem 2rem;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @@keyframes slideIn {
+            0% { opacity: 0; transform: translateX(-20px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10B981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .alert-danger {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 107, 107, 0.4);
+            font-weight: 600;
+        }
+
+        .alert i {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+        }
+
+        /* Form styles */
+        .login-form {
+            padding: 0 2.5rem 3rem;
+        }
+
+        .input-group-custom {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white !important;
+            font-size: 1rem;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            color: white !important;
+        }
+
+        .form-control::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Ensure autofill maintains proper text color */
+        .form-control:-webkit-autofill,
+        .form-control:-webkit-autofill:hover,
+        .form-control:-webkit-autofill:focus,
+        .form-control:-webkit-autofill:active {
+            -webkit-text-fill-color: white !important;
+            -webkit-box-shadow: 0 0 0 30px rgba(255, 255, 255, 0.1) inset !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        /* Additional states for better visibility */
+        .form-control:not(:placeholder-shown) {
+            color: white !important;
+        }
+
+        .form-control[readonly] {
+            color: white !important;
+        }
+
+        /* Ensure text stays white in all possible states */
+        .form-control:valid {
+            color: white !important;
+        }
+
+        .form-control:invalid {
+            color: white !important;
+        }
+
+        .form-control:disabled {
+            color: white !important;
+        }
+
+        .form-control:blur {
+            color: white !important;
+        }
+
+        /* Force text color for all input states - comprehensive fix */
+        input.form-control,
+        input.form-control:focus,
+        input.form-control:active,
+        input.form-control:hover,
+        input.form-control:visited,
+        input.form-control:blur,
+        input.form-control:not(:focus),
+        input.form-control:not(:active),
+        input[type="text"].form-control,
+        input[type="password"].form-control,
+        input[type="email"].form-control {
+            color: white !important;
+            -webkit-text-fill-color: white !important;
+        }
+
+        /* Ensure text remains visible when field loses focus */
+        .form-control:not(:focus):not(:placeholder-shown) {
+            color: white !important;
+            -webkit-text-fill-color: white !important;
+        }
+
+        /* Override any browser default styling that might cause white text */
+        .form-control:not(:focus) {
+            color: white !important;
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        /* Specific fix for unfocused fields with content */
+        .form-control[value]:not(:focus),
+        .form-control:valid:not(:focus) {
+            color: white !important;
+            -webkit-text-fill-color: white !important;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            z-index: 1;
+        }
+
+        .position-relative {
+            position: relative;
+        }
+
+        .position-relative .input-icon {
+            z-index: 2;
+        }
+
+        .position-relative .btn-link {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+        }
+
+        .position-relative .btn-link:hover {
+            color: var(--text-primary);
+        }
+
+        /* Checkbox styles */
+        .form-check {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-check-input {
+            width: 20px;
+            height: 20px;
+            margin-right: 0.75rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .form-check-input:checked {
+            background: var(--secondary-gradient);
+            border-color: transparent;
+            position: relative;
+        }
+
+        .form-check-input:checked::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+        }
+
+        .form-check-label {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        /* Button styles */
+        .btn {
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            padding: 1rem 2rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.2) 50%, 
+                transparent 100%
+            );
+            transition: left 0.6s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--secondary-gradient);
+            color: white;
+            box-shadow: 0 12px 24px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 32px rgba(255, 107, 107, 0.5);
+        }
+
+        .btn-lg {
+            padding: 1.25rem 2.5rem;
+            font-size: 1.2rem;
+        }
+
+        .d-grid {
+            display: grid;
+        }
+
+        .gap-2 {
+            gap: 0.5rem;
+        }
+
+        /* Text and link styles */
+        .text-center {
+            text-align: center;
+        }
+
+        .text-muted {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .text-decoration-none {
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .text-decoration-none::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--secondary-gradient);
+            transition: width 0.3s ease;
+        }
+
+        .text-decoration-none:hover::after {
+            width: 100%;
+        }
+
+        .text-decoration-none:hover {
+            color: white;
+        }
+
+        .fw-bold {
+            font-weight: 700;
+        }
+
+        .mb-2 {
+            margin-bottom: 0.5rem;
+        }
+
+        .mb-4 {
+            margin-bottom: 1.5rem;
+        }
+
+        .my-4 {
+            margin: 1.5rem 0;
+        }
+
+        .small {
+            font-size: 0.875rem;
+        }
+
+
+        /* HR styles */
+        hr {
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.3) 50%, 
+                transparent 100%
+            );
+            margin: 1.5rem 0;
+        }
+
+        /* Enhanced responsive design with Bootstrap utilities */
+        .login-container {
+            padding: 0 1rem;
+        }
+
+        @@media (max-width: 576px) {
+            .login-container {
+                padding: 0 0.5rem;
+            }
+
+            .login-card {
+                border-radius: 20px;
+                margin: 0.5rem 0;
+            }
+
+            .login-header {
+                padding: 1.5rem 1rem 1rem;
+            }
+
+            .login-form {
+                padding: 0 1rem 1.5rem;
+            }
+
+            .login-title {
+                font-size: 1.75rem;
+            }
+
+            .form-control {
+                padding: 0.875rem 0.875rem 0.875rem 2.5rem;
+                font-size: 0.95rem;
+            }
+
+            .btn-lg {
+                padding: 1rem 1.5rem;
+                font-size: 1.1rem;
+            }
+
+            .alert {
+                margin: 0.5rem;
+                padding: 0.875rem 1rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @@media (min-width: 577px) and (max-width: 768px) {
+            .login-card {
+                border-radius: 24px;
+            }
+
+            .login-header {
+                padding: 2rem 1.5rem 1.5rem;
+            }
+
+            .login-form {
+                padding: 0 1.5rem 2rem;
+            }
+
+            .login-title {
+                font-size: 2.2rem;
+            }
+        }
+
+        /* Loading and animation states */
+        .d-none {
+            display: none !important;
+        }
+
+        /* Utility classes */
+        .me-2 {
+            margin-right: 0.5rem;
+        }
+
+        .end-0 {
+            right: 0;
+        }
+
+        .top-50 {
+            top: 50%;
+        }
+
+        .translate-middle-y {
+            transform: translateY(-50%);
+        }
+
+        .pe-3 {
+            padding-right: 1rem;
+        }
+
+        /* Custom animations for form validation */
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @@keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Focus ring for accessibility */
+        .form-control:focus,
+        .btn:focus,
+        .form-check-input:focus {
+            outline: 2px solid rgba(255, 255, 255, 0.5);
+            outline-offset: 2px;
+        }
+    </style>
+
+    <!-- Floating particles background -->
+    <div class="floating-particles" id="particles"></div>
+
+    <div class="container-fluid d-flex justify-content-center align-items-center min-vh-100">
+        <div class="login-container col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5 col-xxl-4">
+            <div class="login-card">
+                <!-- Header Section -->
+                <div class="login-header">
+                    <div class="logo-container">
+                        <i class="fas fa-sign-in-alt"></i>
+                    </div>
+                    <h1 class="login-title">Welcome Back</h1>
+                    <p class="login-subtitle">Sign in to your account</p>
+                </div>
+
+                <!-- Success Message from Registration -->
+                @if (ViewBag.SuccessMessage != null)
+                {
+                    <div class="alert alert-success mx-4 mt-3">
+                        <i class="fas fa-check-circle me-2"></i>
+                        @ViewBag.SuccessMessage
+                    </div>
+                }
+
+                <!-- Success Message -->
+                <div id="success-message" class="alert alert-success d-none mx-4 mt-3">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Login successful! Redirecting to your profile...
+                </div>
+
+                <!-- Error Message -->
+                <div id="error-message" class="alert alert-danger d-none mx-4 mt-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="error-text"></span>
+                </div>
+
+                <!-- Login Form -->
+                <div class="login-form">
+                    <form asp-action="Login" method="post" id="loginForm" onsubmit="showLoading()">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="input-group-custom">
+                            <label asp-for="UsernameEmail" class="form-label">Username or Email</label>
+                            <div class="position-relative">
+                                <input asp-for="UsernameEmail" class="form-control" placeholder="Enter username or email" required />
+                                <i class="fas fa-user input-icon"></i>
+                            </div>
+                            <span asp-validation-for="UsernameEmail" class="text-danger small"></span>
+                        </div>
+
+                        <div class="input-group-custom">
+                            <label asp-for="Password" class="form-label">Password</label>
+                            <div class="position-relative">
+                                <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" 
+                                       id="loginPassword" required />
+                                <i class="fas fa-lock input-icon"></i>
+                                <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y pe-3" 
+                                        onclick="togglePassword()" style="z-index: 10; border: none; background: none;">
+                                    <i class="fas fa-eye" id="toggleIcon"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+
+
+                        <div class="d-grid gap-2 mb-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                            </button>
+                        </div>
+
+                        <div class="text-center">
+                            <p class="text-muted mb-2">
+                                <a href="@Url.Action("ForgotPassword", "Account")" class="text-decoration-none">Forgot your password?</a>
+                            </p>
+                            <p class="text-muted">
+                                Don't have an account? 
+                                <a href="@Url.Action("Register", "Account")" class="text-decoration-none fw-bold">Create one here</a>
+                            </p>
+                            <hr class="my-4">
+                            <p class="text-muted small">
+                                Admin? <a href="@Url.Action("AdminLogin", "Admin")" class="text-decoration-none">Admin Login</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                const size = 2 + Math.random() * 6;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = Math.random() * 100 + '%';
+                
+                const duration = 20 + Math.random() * 15;
+                particle.style.animationDuration = duration + 's';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        function togglePassword() {
+            const passwordField = document.getElementById('loginPassword');
+            const toggleIcon = document.getElementById('toggleIcon');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        function showLoading() {
+            const submitBtn = document.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Signing In...';
+            submitBtn.disabled = true;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+
+            // Show validation errors if any
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <text>
+                const errorMessages = [];
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <text>errorMessages.push('@Html.Raw(error.ErrorMessage.Replace("'", "\\'"))');</text>
+                }
+                
+                if (errorMessages.length > 0) {
+                    document.getElementById('error-text').textContent = errorMessages.join(' ');
+                    document.getElementById('error-message').classList.remove('d-none');
+                    document.getElementById('error-message').classList.add('shake');
+                }
+                </text>
+            }
+
+            // Auto-focus on username field
+            const usernameField = document.querySelector('[name="UsernameEmail"]');
+            if (usernameField) {
+                usernameField.focus();
+            }
+
+            // Check for remember me cookie
+            const rememberUser = getCookie('RememberUser');
+            if (rememberUser && usernameField) {
+                usernameField.value = rememberUser;
+                document.querySelector('[name="RememberMe"]').checked = true;
+            }
+
+            // Add input animations and ensure white text color
+            const inputs = document.querySelectorAll('.form-control');
+            inputs.forEach(input => {
+                // Force white text color immediately
+                input.style.color = 'white';
+                input.style.webkitTextFillColor = 'white';
+
+                input.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'scale(1.02)';
+                    // Ensure white text on focus
+                    this.style.color = 'white';
+                    this.style.webkitTextFillColor = 'white';
+                });
+
+                input.addEventListener('blur', function() {
+                    // Ensure white text when losing focus and reset scale
+                    this.style.color = 'white';
+                    this.style.webkitTextFillColor = 'white';
+                    this.parentElement.style.transform = 'scale(1)';
+                });
+
+                input.addEventListener('input', function() {
+                    // Ensure white text while typing
+                    this.style.color = 'white';
+                    this.style.webkitTextFillColor = 'white';
+                });
+            });
+
+            // Continuous monitoring to ensure white text color
+            setInterval(function() {
+                const allInputs = document.querySelectorAll('.form-control');
+                allInputs.forEach(input => {
+                    if (input.style.color !== 'white' || input.style.webkitTextFillColor !== 'white') {
+                        input.style.color = 'white';
+                        input.style.webkitTextFillColor = 'white';
+                    }
+                });
+            }, 100);
+
+            // Form submission enhancement
+            const form = document.getElementById('loginForm');
+            form.addEventListener('submit', function(e) {
+                const inputs = form.querySelectorAll('input[required]');
+                let isValid = true;
+                
+                inputs.forEach(input => {
+                    if (!input.value.trim()) {
+                        input.style.borderColor = 'var(--error-color)';
+                        input.classList.add('shake');
+                        isValid = false;
+                    } else {
+                        input.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                        input.classList.remove('shake');
+                    }
+                });
+
+                if (!isValid) {
+                    e.preventDefault();
+                    const errorMsg = document.getElementById('error-message');
+                    document.getElementById('error-text').textContent = 'Please fill in all required fields.';
+                    errorMsg.classList.remove('d-none');
+                    errorMsg.classList.add('shake');
+                    
+                    setTimeout(() => {
+                        inputs.forEach(input => input.classList.remove('shake'));
+                        errorMsg.classList.remove('shake');
+                    }, 500);
+                }
+            });
+        });
+
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+    </script>
+
+@section Scripts {
+    <script>
+        // Additional scripts for ASP.NET Core integration can go here
+    </script>
+}
+</body>
+</html>

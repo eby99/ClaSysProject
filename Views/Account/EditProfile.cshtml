@@ -1,0 +1,502 @@
+@model RegistrationPortal.ViewModels.EditUserViewModel
+@{
+    ViewData["Title"] = "Edit Profile";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - Edit Profile</title>
+
+    <!-- CSS Libraries -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="~/css/register.css" asp-append-version="true">
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Updating your profile...</div>
+    </div>
+    <div class="container">
+        <div class="header-section">
+            <div class="logo-animation">
+                <i class="fas fa-user-edit"></i>
+            </div>
+            <h2>Edit Your Profile</h2>
+            <p class="subtitle">Update your personal information</p>
+        </div>
+
+        <div id="success-message" class="success-message" style="display:none;">
+            <i class="fas fa-check-circle"></i>
+            <div class="welcome-text">
+                <p>Profile updated successfully!</p>
+                <p class="user-welcome">Changes saved for <span id="welcome-name">@Model.FirstName</span>!</p>
+            </div>
+        </div>
+        <div id="error-alert" class="error-alert" style="display:none;">
+            <i class="fas fa-exclamation-circle"></i> Please correct the errors below.
+        </div>
+
+        <form id="editProfileForm"
+              asp-controller="Account"
+              asp-action="EditProfile"
+              method="post">
+            @Html.AntiForgeryToken()
+            <input asp-for="UserID" type="hidden" />
+
+            <!-- Personal Information Section -->
+            <div class="personal-info-section" id="personal-section">
+                <h3 class="section-title">
+                    <i class="fas fa-user me-2"></i>Personal Information
+                </h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="firstname">
+                            First Name <span class="required">*</span>
+                            <span class="tooltip">
+                                <i class="fas fa-info-circle"></i>
+                                <span class="tooltip-content">Your legal first name</span>
+                            </span>
+                        </label>
+                        <div class="input-group">
+                            <div class="input-wrapper">
+                                <i class="fas fa-user"></i>
+                                <input asp-for="FirstName" type="text" id="firstname" name="FirstName" required class="form-control personal-field" placeholder="Enter your first name">
+                            </div>
+                            <div class="error-message" id="firstname-error">Please enter your first name</div>
+                            <span asp-validation-for="FirstName" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastname">
+                            Last Name <span class="required">*</span>
+                        </label>
+                        <div class="input-group">
+                            <div class="input-wrapper">
+                                <i class="fas fa-user"></i>
+                                <input asp-for="LastName" type="text" id="lastname" name="LastName" required class="form-control personal-field" placeholder="Enter your last name">
+                            </div>
+                            <div class="error-message" id="lastname-error">Please enter your last name</div>
+                            <span asp-validation-for="LastName" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="username">
+                            Username <span class="required">*</span>
+                        </label>
+                        <div class="input-group">
+                            <div class="input-wrapper">
+                                <i class="fas fa-user"></i>
+                                <input asp-for="Username" type="text" id="username" name="Username" required maxlength="30" placeholder="Enter username" class="form-control personal-field">
+                            </div>
+                            <div class="error-message" id="username-error"></div>
+                            <span asp-validation-for="Username" class="text-danger small"></span>
+                            <div class="field-info">Must start with a letter, 3-30 characters, letters, numbers and underscore only</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="dob">
+                            Date of Birth <span class="required">*</span>
+                        </label>
+                        <div class="input-group">
+                            <div class="input-wrapper">
+                                <i class="fas fa-calendar"></i>
+                                <input asp-for="DateOfBirth" type="date" id="dob" name="DateOfBirth" required class="form-control personal-field" min="1950-01-01">
+                            </div>
+                            <div class="error-message" id="dob-error">You must be at least 18 years old</div>
+                            <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="gender">
+                            Gender
+                        </label>
+                        <div class="input-group">
+                            <div class="input-wrapper">
+                                <i class="fas fa-venus-mars"></i>
+                                <select asp-for="Gender" id="gender" name="Gender" class="form-control personal-field">
+                                    <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                    <option value="PreferNot">Prefer not to say</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="country">
+                            Country
+                        </label>
+                        <div class="input-group">
+                            <div class="input-wrapper">
+                                <i class="fas fa-globe"></i>
+                                <select asp-for="Country" id="country" name="Country" class="form-control personal-field">
+                                    <option value="">Select Country</option>
+                                    <option value="US">United States</option>
+                                    <option value="UK">United Kingdom</option>
+                                    <option value="CA">Canada</option>
+                                    <option value="AU">Australia</option>
+                                    <option value="IN">India</option>
+                                    <option value="DE">Germany</option>
+                                    <option value="FR">France</option>
+                                    <option value="JP">Japan</option>
+                                    <option value="BR">Brazil</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information Section -->
+            <div class="contact-section" id="contact-section">
+                <h3 class="section-title">
+                    <i class="fas fa-address-book me-2"></i>Contact Information
+                </h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="email">
+                            Email Address <span class="required">*</span>
+                        </label>
+                        <div class="input-group">
+                            <div class="input-wrapper">
+                                <i class="fas fa-envelope"></i>
+                                <input asp-for="Email" type="email" id="email" name="Email" required maxlength="100" placeholder=" " class="form-control contact-field">
+                                <span class="floating-label">your.email@example.com</span>
+                            </div>
+                            <div class="error-message" id="email-error">Please enter a valid email address</div>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">
+                            Phone Number
+                        </label>
+                        <div class="input-group">
+                            <div class="input-wrapper">
+                                <i class="fas fa-phone"></i>
+                                <input asp-for="PhoneNumber" type="tel" id="phone" name="PhoneNumber" maxlength="20" placeholder=" " class="form-control contact-field">
+                                <span class="floating-label">(123) 456-7890</span>
+                            </div>
+                            <div class="error-message" id="phone-error">Phone number must be exactly 10 digits</div>
+                            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="address">
+                            Street Address
+                        </label>
+                        <div class="input-group">
+                            <div class="input-wrapper">
+                                <i class="fas fa-home"></i>
+                                <input asp-for="StreetAddress" type="text" id="address" name="StreetAddress" maxlength="200" placeholder="Enter your street address" class="form-control contact-field">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="city">
+                            City
+                        </label>
+                        <div class="input-group">
+                            <div class="input-wrapper">
+                                <i class="fas fa-city"></i>
+                                <input asp-for="City" type="text" id="city" name="City" class="form-control contact-field" placeholder="Enter city">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="state">
+                            State/Province
+                        </label>
+                        <div class="input-group">
+                            <div class="input-wrapper">
+                                <i class="fas fa-map-marked-alt"></i>
+                                <input asp-for="State" type="text" id="state" name="State" class="form-control contact-field" placeholder="Enter state">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="zipcode">
+                            ZIP/Postal Code
+                        </label>
+                        <div class="input-group">
+                            <div class="input-wrapper">
+                                <i class="fas fa-mail-bulk"></i>
+                                <input asp-for="ZipCode" type="text" id="zipcode" name="ZipCode" maxlength="20" placeholder=" " class="form-control contact-field">
+                                <span class="floating-label">12345</span>
+                            </div>
+                            <div class="error-message" id="zipcode-error">ZIP code must be valid</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Information Section -->
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label for="bio">
+                        Bio / About You
+                        <span class="tooltip">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="tooltip-content">Tell us a bit about yourself (optional)</span>
+                        </span>
+                    </label>
+                    <div class="input-group">
+                        <div class="input-wrapper">
+                            <textarea asp-for="Bio" id="bio" name="Bio" maxlength="500" placeholder="Share something about yourself..." class="form-control"></textarea>
+                            <span class="char-counter"><span id="bio-count">0</span>/500</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="newsletter">
+                        Communication Preferences
+                    </label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-wrapper">
+                            <input asp-for="ReceiveNewsletter" type="checkbox" id="newsletter" name="ReceiveNewsletter">
+                        </div>
+                        <label for="newsletter" style="margin-bottom: 0;">
+                            Receive newsletters and updates
+                        </label>
+                    </div>
+                    <div class="checkbox-group">
+                        <div class="checkbox-wrapper">
+                            <input asp-for="ReceiveSMS" type="checkbox" id="sms-alerts" name="ReceiveSMS">
+                        </div>
+                        <label for="sms-alerts" style="margin-bottom: 0;">
+                            Receive SMS notifications
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Buttons -->
+            <div class="button-group">
+                <a href="@Url.Action("Profile", "Account")" class="btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="btn-primary" id="submitBtn">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </form>
+        <div class="terms">
+            <p>Return to <a href="@Url.Action("Profile", "Account")">your profile</a></p>
+            <p>Need help? Contact <a href="mailto:support@example.com">support@example.com</a></p>
+        </div>
+    </div>
+
+    <script src="~/js/register.js" asp-append-version="true"></script>
+
+    @section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+        <script>
+            // Store original values for change detection
+            var originalValues = {};
+
+            // Update page for edit mode
+            $(document).ready(function() {
+                // Store original form values
+                originalValues = {
+                    firstName: $('#firstname').val() || '',
+                    lastName: $('#lastname').val() || '',
+                    username: $('#username').val() || '',
+                    email: $('#email').val() || '',
+                    dateOfBirth: $('#dob').val() || '',
+                    gender: $('#gender').val() || '',
+                    country: $('#country').val() || '',
+                    phoneNumber: $('#phone').val() || '',
+                    streetAddress: $('#address').val() || '',
+                    city: $('#city').val() || '',
+                    state: $('#state').val() || '',
+                    zipCode: $('#zipcode').val() || '',
+                    bio: $('#bio').val() || '',
+                    receiveNewsletter: $('#newsletter').is(':checked'),
+                    receiveSMS: $('#sms-alerts').is(':checked')
+                };
+
+                console.log('Original values stored:', originalValues);
+
+                // Set bio character counter
+                var bioText = $('#bio').val() || '';
+                $('#bio-count').text(bioText.length);
+
+                // Bio character counter
+                $('#bio').on('input', function() {
+                    var length = $(this).val().length;
+                    $('#bio-count').text(length);
+                });
+
+                // Function to check if any values have changed
+                function hasChanges() {
+                    var currentValues = {
+                        firstName: $('#firstname').val() || '',
+                        lastName: $('#lastname').val() || '',
+                        username: $('#username').val() || '',
+                        email: $('#email').val() || '',
+                        dateOfBirth: $('#dob').val() || '',
+                        gender: $('#gender').val() || '',
+                        country: $('#country').val() || '',
+                        phoneNumber: $('#phone').val() || '',
+                        streetAddress: $('#address').val() || '',
+                        city: $('#city').val() || '',
+                        state: $('#state').val() || '',
+                        zipCode: $('#zipcode').val() || '',
+                        bio: $('#bio').val() || '',
+                        receiveNewsletter: $('#newsletter').is(':checked'),
+                        receiveSMS: $('#sms-alerts').is(':checked')
+                    };
+
+                    console.log('Current values:', currentValues);
+
+                    for (var key in originalValues) {
+                        if (originalValues[key] !== currentValues[key]) {
+                            console.log('Change detected in:', key, 'Original:', originalValues[key], 'Current:', currentValues[key]);
+                            return true;
+                        }
+                    }
+                    console.log('No changes detected');
+                    return false;
+                }
+
+                // Custom validation for edit profile
+                $('#editProfileForm').on('submit', function(e) {
+                    console.log('Form submit event triggered');
+
+                    // Check if there are any changes
+                    if (!hasChanges()) {
+                        console.log('No changes, preventing submission');
+                        e.preventDefault();
+                        alert('No changes were made to your profile.');
+                        return false;
+                    }
+
+                    // Show confirmation dialog
+                    console.log('Changes detected, showing confirmation');
+                    if (!confirm('Are you sure you want to save these changes to your profile?')) {
+                        console.log('User cancelled confirmation');
+                        e.preventDefault();
+                        return false;
+                    }
+
+                    console.log('User confirmed, proceeding with submission');
+                    var isValid = true;
+
+                    // Validate required fields
+                    if (!$('#firstname').val().trim()) {
+                        $('#firstname-error').show();
+                        isValid = false;
+                    } else {
+                        $('#firstname-error').hide();
+                    }
+
+                    if (!$('#lastname').val().trim()) {
+                        $('#lastname-error').show();
+                        isValid = false;
+                    } else {
+                        $('#lastname-error').hide();
+                    }
+
+                    if (!$('#username').val().trim()) {
+                        $('#username-error').text('Please enter a username').show();
+                        isValid = false;
+                    } else {
+                        $('#username-error').hide();
+                    }
+
+                    if (!$('#email').val().trim()) {
+                        $('#email-error').show();
+                        isValid = false;
+                    } else {
+                        $('#email-error').hide();
+                    }
+
+                    // Date of birth validation
+                    const dob = new Date($('#dob').val());
+                    const today = new Date();
+                    const age = today.getFullYear() - dob.getFullYear();
+                    const monthDiff = today.getMonth() - dob.getMonth();
+
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                        age--;
+                    }
+
+                    if ($('#dob').val() && age < 18) {
+                        $('#dob-error').show();
+                        isValid = false;
+                    } else {
+                        $('#dob-error').hide();
+                    }
+
+                    if (!isValid) {
+                        e.preventDefault();
+                        $('#error-alert').html('<i class="fas fa-exclamation-circle"></i> Please correct the errors below.').fadeIn(300);
+                        setTimeout(() => $('#error-alert').fadeOut(300), 5000);
+                    }
+                });
+            });
+
+            // Form submission handling - now uses regular form submission after validation
+
+            // Server-side validation handling
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <text>
+                $(document).ready(function() {
+                    var errorMessages = @Html.Raw(Json.Serialize(ViewData.ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)));
+
+                    if (errorMessages.length > 0) {
+                        $('#error-alert')
+                            .html('<i class="fas fa-exclamation-circle"></i> ' + errorMessages.join('<br>'))
+                            .fadeIn(300);
+
+                        setTimeout(function() { $('#error-alert').fadeOut(300); }, 8000);
+                    }
+                });
+                </text>
+            }
+
+            // Success message handling
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <text>
+                $(document).ready(function() {
+                    $('#success-message').fadeIn(500);
+                    setTimeout(function() {
+                        window.location.href = '@Url.Action("Profile", "Account")';
+                    }, 2000);
+                });
+                </text>
+            }
+
+            // Error message handling
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <text>
+                $(document).ready(function() {
+                    $('#error-alert')
+                        .html('<i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]')
+                        .fadeIn(300);
+                    setTimeout(function() { $('#error-alert').fadeOut(300); }, 5000);
+                });
+                </text>
+            }
+        </script>
+    }
+</body>
+</html>
