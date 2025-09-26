@@ -477,3 +477,35 @@ yarn.lock
 
 # StyleLint cache
 .stylelintcache
+
+# Project specific - Claude Code files
+CLAUDE.md
+.claude/
+
+# Project specific - Build and deployment files
+*.ps1
+build_output.txt
+nul
+*.fixed
+EventViewerCommands.txt
+
+# Project specific - Testing files
+Test-*.ps1
+Testing/
+
+# Project specific - Documentation
+Documentation/
+DEPLOYMENT.md
+
+# Project specific - Database setup
+Database/
+Setup-*.ps1
+
+# Project specific - API configuration
+appsettings.api.json
+
+# Project specific - CSS files with encoding issues
+"E\357\200\272*"
+
+# Project specific - Perfect CSS backup
+perfect_inline_css.txt
