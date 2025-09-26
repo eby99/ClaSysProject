@@ -26,6 +26,7 @@ namespace RegistrationPortal.Services
         Task<bool> IsEmailAvailableForEditAsync(string email, int currentUserId);
         Task<bool> IsPhoneAvailableForEditAsync(string phoneNumber, int currentUserId);
         Task<DashboardStats> GetDashboardStatsAsync();
+        Task<List<User>> GetUnapprovedUsersAsync();
     }
 
     public class UserService : IUserService
@@ -54,6 +55,9 @@ namespace RegistrationPortal.Services
 
                 user.CreatedDate = DateTime.Now;
                 user.LastModified = DateTime.Now;
+
+                // Ensure new users need approval
+                user.IsApproved = false;
 
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
@@ -126,7 +130,6 @@ namespace RegistrationPortal.Services
                 var existingUser = await _context.Users.FindAsync(user.UserID);
                 if (existingUser == null)
                 {
-                    Console.WriteLine($"UpdateUserAsync: User with ID {user.UserID} not found");
                     return false;
                 }
 
@@ -134,22 +137,15 @@ namespace RegistrationPortal.Services
                 if (existingUser.Username != user.Username &&
                     await _context.Users.AnyAsync(u => u.Username == user.Username && u.UserID != user.UserID))
                 {
-                    Console.WriteLine($"UpdateUserAsync: Username {user.Username} already exists");
                     return false;
                 }
 
                 if (existingUser.Email != user.Email &&
                     await _context.Users.AnyAsync(u => u.Email == user.Email && u.UserID != user.UserID))
                 {
-                    Console.WriteLine($"UpdateUserAsync: Email {user.Email} already exists");
                     return false;
                 }
 
-                // Log the status change
-                if (existingUser.IsActive != user.IsActive)
-                {
-                    Console.WriteLine($"UpdateUserAsync: Changing user {user.UserID} status from {existingUser.IsActive} to {user.IsActive}");
-                }
 
                 existingUser.FirstName = user.FirstName;
                 existingUser.LastName = user.LastName;
@@ -170,13 +166,11 @@ namespace RegistrationPortal.Services
                 existingUser.LastModified = DateTime.Now;
 
                 var changesCount = await _context.SaveChangesAsync();
-                Console.WriteLine($"UpdateUserAsync: Saved {changesCount} changes for user {user.UserID}");
 
                 return changesCount > 0;
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"UpdateUserAsync: Exception occurred: {ex.Message}");
                 return false;
             }
         }
@@ -188,8 +182,8 @@ namespace RegistrationPortal.Services
                 var user = await _context.Users.FindAsync(userId);
                 if (user == null) return false;
 
-                user.IsActive = false;
-                user.LastModified = DateTime.Now;
+                // Permanently delete the user from the database
+                _context.Users.Remove(user);
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -253,11 +247,8 @@ namespace RegistrationPortal.Services
 
         public async Task<bool> IsUsernameAvailableForEditAsync(string username, int currentUserId)
         {
-            Console.WriteLine($"SERVICE DEBUG: Checking username '{username}' excluding user ID {currentUserId}");
             var conflictingUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == username && u.UserID != currentUserId);
-            bool isAvailable = conflictingUser == null;
-            Console.WriteLine($"SERVICE DEBUG: Conflicting user found: {conflictingUser?.UserID}, Available: {isAvailable}");
-            return isAvailable;
+            return conflictingUser == null;
         }
 
         public async Task<bool> IsEmailAvailableForEditAsync(string email, int currentUserId)
@@ -277,6 +268,7 @@ namespace RegistrationPortal.Services
             var newUsersToday = await _context.Users.CountAsync(u => u.CreatedDate.Date == DateTime.Today);
             var recentUsers = await _context.Users.CountAsync(u => u.CreatedDate >= DateTime.Today.AddDays(-7));
             var newsletterSubscribers = await _context.Users.CountAsync(u => u.ReceiveNewsletter && u.IsActive);
+            var pendingApproval = await _context.Users.CountAsync(u => !u.IsApproved);
 
             return new DashboardStats
             {
@@ -284,8 +276,17 @@ namespace RegistrationPortal.Services
                 ActiveUsers = activeUsers,
                 NewUsersToday = newUsersToday,
                 RecentUsers = recentUsers,
-                NewsletterSubscribers = newsletterSubscribers
+                NewsletterSubscribers = newsletterSubscribers,
+                PendingApproval = pendingApproval
             };
+        }
+
+        public async Task<List<User>> GetUnapprovedUsersAsync()
+        {
+            return await _context.Users
+                .Where(u => !u.IsApproved)
+                .OrderBy(u => u.CreatedDate)
+                .ToListAsync();
         }
     }
 }

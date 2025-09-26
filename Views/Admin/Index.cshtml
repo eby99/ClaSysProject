@@ -11,859 +11,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"] - ClasySys Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <link href="~/css/external/bootstrap.min.css" rel="stylesheet">
+    <link href="~/css/external/font-awesome.min.css" rel="stylesheet">
+    <link href="~/css/fonts/inter-spacegrotesk.css" rel="stylesheet">
+    <link href="~/css/external/animate.min.css" rel="stylesheet">
+    <link href="~/css/admin-index.css" rel="stylesheet">
     <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            --admin-gradient: linear-gradient(135deg, #f56565 0%, #ed8936 50%, #ecc94b 100%);
-            --glass-bg: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --text-primary: rgba(255, 255, 255, 0.95);
-            --text-secondary: rgba(255, 255, 255, 0.8);
-            --text-muted: rgba(255, 255, 255, 0.6);
-            --success-color: #10B981;
-            --error-color: #ff6b6b;
-            --warning-color: #F59E0B;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--admin-gradient);
-            background-attachment: fixed;
-            min-height: 100vh;
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background:
-                radial-gradient(circle at 20% 50%, rgba(245, 101, 101, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(237, 137, 54, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 40% 80%, rgba(236, 201, 75, 0.3) 0%, transparent 50%);
-            animation: gradientShift 20s ease-in-out infinite;
-            z-index: 0;
-        }
-
-        @@keyframes gradientShift {
-            0%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
-            25% { opacity: 0.8; transform: scale(1.05) rotate(1deg); }
-            50% { opacity: 0.9; transform: scale(0.95) rotate(-1deg); }
-            75% { opacity: 0.85; transform: scale(1.02) rotate(0.5deg); }
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-            min-height: 100vh;
-            position: relative;
-            z-index: 1;
-        }
-
-        .admin-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(25px);
-            border-radius: 24px;
-            border: none;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-            padding: 2.5rem;
-            width: 100%;
-            color: var(--text-primary);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .admin-header {
-            text-align: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .admin-header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            background: linear-gradient(45deg, #fff, #f0f0f0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .admin-header p {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-        }
-
-        .welcome-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-        }
-
-        .welcome-text {
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
-
-        .logout-btn {
-            background: rgba(255, 107, 107, 0.2);
-            color: #ff6b6b;
-            border: 1px solid rgba(255, 107, 107, 0.4);
-            border-radius: 12px;
-            padding: 0.75rem 1.5rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 107, 107, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .home-btn {
-            background: rgba(16, 185, 129, 0.2);
-            color: #10B981;
-            border: 1px solid rgba(16, 185, 129, 0.4);
-            border-radius: 12px;
-            padding: 0.75rem 1.5rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-right: 1rem;
-        }
-
-        .home-btn:hover {
-            background: rgba(16, 185, 129, 0.3);
-            transform: translateY(-2px);
-            text-decoration: none;
-            color: #10B981;
-        }
-
-        .stats-grid {
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: 1.5rem;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .stat-card i {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            color: var(--text-secondary);
-        }
-
-        .stat-card h3 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-card p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        .users-section {
-            margin-top: 2rem;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        .users-table {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 0;
-        }
-
-        .table th,
-        .table td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-            vertical-align: middle;
-        }
-
-        .table th:last-child,
-        .table td:last-child {
-            text-align: center;
-            width: 140px;
-            min-width: 140px;
-        }
-
-        .table th {
-            background: rgba(255, 255, 255, 0.15);
-            color: var(--text-primary);
-            font-weight: 600;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .table td {
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: 500;
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .table tbody tr {
-            background: rgba(255, 255, 255, 0.03);
-            transition: all 0.3s ease;
-        }
-
-        .table tbody tr:nth-child(even) {
-            background: rgba(255, 255, 255, 0.06);
-        }
-
-        .table tbody tr:hover {
-            background: rgba(255, 255, 255, 0.12);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .status-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
         .status-active {
-            background: rgba(16, 185, 129, 0.2);
-            color: #10B981;
-            border: 1px solid rgba(16, 185, 129, 0.3);
+            background: rgba(16, 185, 129, 0.25) !important;
+            color: #34D399 !important;
+            border: 1px solid rgba(16, 185, 129, 0.4) !important;
+            font-weight: 700 !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7) !important;
         }
 
         .status-inactive {
-            background: rgba(255, 107, 107, 0.2);
-            color: #ff6b6b;
-            border: 1px solid rgba(255, 107, 107, 0.3);
+            background: rgba(255, 107, 107, 0.25) !important;
+            color: #FCA5A5 !important;
+            border: 1px solid rgba(255, 107, 107, 0.4) !important;
+            font-weight: 700 !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7) !important;
         }
 
-        .action-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            min-width: 120px;
-        }
-
-        .btn {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.4rem;
-            width: 100%;
-            min-width: 100px;
-            max-width: 120px;
-            height: 36px;
-            white-space: nowrap;
-        }
-
-        .btn-edit {
-            background: linear-gradient(45deg, #3B82F6, #2563EB);
-            color: white;
-            border: none;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-        }
-
-        .btn-edit:hover {
-            background: linear-gradient(45deg, #2563EB, #1D4ED8);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
-        }
-
-        .btn-toggle {
-            background: linear-gradient(45deg, #10B981, #059669);
-            color: white;
-            border: none;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-toggle:hover {
-            background: linear-gradient(45deg, #059669, #047857);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
-        }
-
-        .btn-delete {
-            background: linear-gradient(45deg, #EF4444, #DC2626);
-            color: white;
-            border: none;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
-        }
-
-        .btn-delete:hover {
-            background: linear-gradient(45deg, #DC2626, #B91C1C);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
-        }
-
-        /* Force uniform sizing for all action buttons */
-        .action-buttons .btn,
-        .action-buttons .btn-edit,
-        .action-buttons .btn-toggle,
-        .action-buttons .btn-delete,
-        .action-buttons .btn-danger,
-        .action-buttons form .btn,
-        .action-buttons form .btn-edit,
-        .action-buttons form .btn-toggle,
-        .action-buttons form .btn-delete,
-        .action-buttons form .btn-danger {
-            width: 100% !important;
-            min-width: 100px !important;
-            max-width: 120px !important;
-            height: 36px !important;
-            padding: 0.5rem 1rem !important;
-            font-size: 0.8rem !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: 0.4rem !important;
-            box-sizing: border-box !important;
-            margin: 0 !important;
-            border: none !important;
-            text-decoration: none !important;
-            white-space: nowrap !important;
-        }
-
-        /* Ensure forms don't interfere with button sizing */
-        .action-buttons form {
-            display: block !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 1rem;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            font-size: 1rem;
-            font-weight: 500;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-            margin-bottom: 1rem;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: rgba(255, 255, 255, 0.5);
-            background: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 8px 32px rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .form-control::placeholder {
-            color: var(--text-muted);
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-label {
-            display: block;
-            color: var(--text-primary);
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .btn-primary {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 16px;
-            padding: 1rem 2rem;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
-        }
-
-        .login-form {
-            max-width: 400px;
-            margin: 0 auto;
-        }
-
-        .login-form .form-group {
-            text-align: left;
-        }
-
-        .login-form .btn-primary {
-            width: auto;
-            margin: 1rem auto 0;
-            display: inline-flex;
-            justify-content: center;
-        }
-
-        .login-form form {
-            text-align: center;
-        }
-
-        .alert {
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-weight: 500;
-        }
-
-        .alert-success {
-            background: rgba(16, 185, 129, 0.2);
-            color: #10B981;
-            border: 1px solid rgba(16, 185, 129, 0.3);
-        }
-
-        .alert-error {
-            background: rgba(255, 255, 255, 0.1);
-            color: #ff6b6b;
-            border: 1px solid rgba(255, 107, 107, 0.4);
-            font-weight: 600;
-        }
-
-        .filter-buttons {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .filter-btn {
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            text-decoration: none;
-            color: var(--text-secondary);
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
-            font-size: 0.875rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .filter-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            color: var(--text-primary);
-            transform: translateY(-1px);
-            text-decoration: none;
-        }
-
-        .filter-btn.active {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            border-color: transparent;
-        }
-
-        .action-buttons .btn-danger {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
-            color: white;
-            border: none;
-            font-weight: 600;
-        }
-
-        .action-buttons .btn-danger:hover {
-            background: linear-gradient(45deg, #ff5252, #d32f2f);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 9999;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
-            justify-content: center;
-            align-items: center;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .modal-content {
-            background: var(--glass-bg);
-            backdrop-filter: blur(25px);
-            border-radius: 20px;
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-            width: 90%;
-            max-width: 450px;
-            color: var(--text-primary);
-            animation: slideIn 0.3s ease;
-            overflow: hidden;
-        }
-
-        .modal-header {
-            padding: 1.5rem 2rem 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .modal-header h2 {
-            margin: 0;
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-
-        .close {
-            color: var(--text-muted);
-            font-size: 2rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: color 0.3s ease;
-            line-height: 1;
-        }
-
-        .close:hover {
-            color: var(--text-primary);
-        }
-
-        .modal-body {
-            padding: 1.5rem 2rem;
-            text-align: center;
-        }
-
-        .modal-icon {
-            margin-bottom: 1rem;
-        }
-
-        .modal-icon i {
-            font-size: 4rem;
-            opacity: 0.8;
-        }
-
-        .modal-body p {
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
-            color: var(--text-secondary);
-        }
-
-        .user-info {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 0.75rem 1rem;
-            border-radius: 10px;
-            margin: 1rem 0;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .user-info strong {
-            color: var(--text-primary);
-        }
-
-        .modal-footer {
-            padding: 1rem 2rem 1.5rem;
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-        }
-
-        .modal-footer .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            min-width: 120px;
-            justify-content: center;
-        }
-
-        .modal-footer .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-primary);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .modal-footer .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .modal-footer .btn-primary {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .modal-footer .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-        }
-
-        .modal-footer .btn-primary:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
-
-        @@keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @@keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-50px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        @@media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-
-            .admin-card {
-                padding: 1.5rem;
-            }
-
-            .welcome-section {
-                flex-direction: column;
-                gap: 1rem;
-                text-align: center;
-                padding: 1rem;
-            }
-
-            .welcome-section > div:last-child {
-                display: flex;
-                flex-direction: column;
-                gap: 0.75rem;
-                align-items: center;
-                width: 100%;
-            }
-
-            .home-btn,
-            .logout-btn {
-                width: 100%;
-                max-width: 200px;
-                justify-content: center;
-                margin: 0;
-            }
-
-            .action-buttons {
-                gap: 0.4rem;
-                min-width: 110px;
-            }
-
-            .action-buttons .btn,
-            .action-buttons .btn-edit,
-            .action-buttons .btn-toggle,
-            .action-buttons .btn-delete,
-            .action-buttons .btn-danger,
-            .action-buttons form .btn,
-            .action-buttons form .btn-edit,
-            .action-buttons form .btn-toggle,
-            .action-buttons form .btn-delete,
-            .action-buttons form .btn-danger {
-                width: 100% !important;
-                min-width: 90px !important;
-                max-width: 110px !important;
-                padding: 0.45rem 0.8rem !important;
-                font-size: 0.75rem !important;
-                height: 34px !important;
-            }
-
-            .table {
-                font-size: 0.85rem;
-            }
-
-            .table th,
-            .table td {
-                padding: 0.75rem 0.5rem;
-            }
-
-            .table th:last-child,
-            .table td:last-child {
-                width: 120px;
-                min-width: 120px;
-            }
-
-            .stat-card h3 {
-                font-size: 1.5rem;
-            }
-
-            .stat-card p {
-                font-size: 0.8rem;
-            }
-        }
-
-        @@media (max-width: 576px) {
-            .container {
-                padding: 0.5rem;
-            }
-
-            .admin-card {
-                padding: 1rem;
-                border-radius: 16px;
-            }
-
-            .admin-header h1 {
-                font-size: 1.75rem;
-            }
-
-            .section-title {
-                font-size: 1.25rem;
-            }
-
-            .welcome-text {
-                font-size: 1rem;
-            }
-
-            .welcome-section {
-                padding: 0.75rem;
-            }
-
-            .welcome-section > div:last-child {
-                gap: 0.5rem;
-            }
-
-            .home-btn,
-            .logout-btn {
-                width: 100%;
-                max-width: 180px;
-                padding: 0.6rem 1rem;
-                font-size: 0.9rem;
-            }
-
-            .table {
-                font-size: 0.8rem;
-            }
-
-            .table th,
-            .table td {
-                padding: 0.5rem 0.25rem;
-            }
-
-            .table th:last-child,
-            .table td:last-child {
-                width: 110px;
-                min-width: 110px;
-                padding: 0.5rem 0.1rem;
-            }
-
-            .btn {
-                padding: 0.35rem 0.6rem;
-                font-size: 0.75rem;
-                min-width: auto;
-            }
-
-            .action-buttons {
-                gap: 0.35rem;
-                min-width: 100px;
-            }
-
-            .action-buttons .btn,
-            .action-buttons .btn-edit,
-            .action-buttons .btn-toggle,
-            .action-buttons .btn-delete,
-            .action-buttons .btn-danger,
-            .action-buttons form .btn,
-            .action-buttons form .btn-edit,
-            .action-buttons form .btn-toggle,
-            .action-buttons form .btn-delete,
-            .action-buttons form .btn-danger {
-                width: 100% !important;
-                min-width: 80px !important;
-                max-width: 100px !important;
-                padding: 0.4rem 0.6rem !important;
-                font-size: 0.7rem !important;
-                height: 32px !important;
-            }
-
-            .filter-btn {
-                padding: 0.4rem 0.6rem;
-                font-size: 0.8rem;
-            }
+        .status-pending {
+            background: rgba(245, 158, 11, 0.35) !important;
+            color: #FCD34D !important;
+            border: 1px solid rgba(245, 158, 11, 0.6) !important;
+            font-weight: 700 !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important;
         }
     </style>
 </head>
@@ -967,55 +142,120 @@
                 {
                     <div class="stats-grid">
                         <div class="row g-3">
-                            <div class="col-6 col-lg-3">
+                            <div class="col-6 col-lg-2">
                                 <div class="stat-card h-100">
-                            <i class="fas fa-users"></i>
-                            <h3>@(Model?.Stats?.TotalUsers ?? 0)</h3>
-                            <p>Total Users</p>
+                                    <i class="fas fa-users"></i>
+                                    <h3>@(Model?.Stats?.TotalUsers ?? 0)</h3>
+                                    <p>Total Users</p>
                                 </div>
                             </div>
-                            <div class="col-6 col-lg-3">
+                            <div class="col-6 col-lg-2">
                                 <div class="stat-card h-100">
                                     <i class="fas fa-user-check"></i>
                                     <h3>@(Model?.Stats?.ActiveUsers ?? 0)</h3>
                                     <p>Active Users</p>
                                 </div>
                             </div>
-                            <div class="col-6 col-lg-3">
+                            <div class="col-6 col-lg-2">
                                 <div class="stat-card h-100">
-                                    <i class="fas fa-user-clock"></i>
-                                    <h3>@(Model?.Stats?.RecentUsers ?? 0)</h3>
-                                    <p>Recent Users (7 days)</p>
+                                    <i class="fas fa-user-times"></i>
+                                    <h3>@((Model?.Stats?.TotalUsers ?? 0) - (Model?.Stats?.ActiveUsers ?? 0))</h3>
+                                    <p>Inactive Users</p>
                                 </div>
                             </div>
-                            <div class="col-6 col-lg-3">
+                            <div class="col-6 col-lg-2">
+                                <div class="stat-card h-100">
+                                    <i class="fas fa-user-clock text-warning"></i>
+                                    <h3>@(Model?.Stats?.PendingApproval ?? 0)</h3>
+                                    <p>Pending Approval</p>
+                                </div>
+                            </div>
+                            <div class="col-6 col-lg-2">
+                                <div class="stat-card h-100">
+                                    <i class="fas fa-user-plus text-success"></i>
+                                    <h3>@(Model?.Stats?.RecentUsers ?? 0)</h3>
+                                    <p>New This Week</p>
+                                </div>
+                            </div>
+                            <div class="col-6 col-lg-2">
                                 <div class="stat-card h-100">
                                     <i class="fas fa-envelope"></i>
                                     <h3>@(Model?.Stats?.NewsletterSubscribers ?? 0)</h3>
-                                    <p>Newsletter Subscribers</p>
+                                    <p>Newsletter Subs</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 }
 
-                <div class="users-section">
+                <div class="users-section" id="users-section">
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
                         <h2 class="section-title mb-0"><i class="fas fa-list"></i> User Management</h2>
                         <div class="filter-buttons d-flex flex-wrap gap-2">
-                            <a href="@Url.Action("Index", new { filter = "active" })"
+                            <a href="@Url.Action("Index", new { filter = "active" })#users-section"
                                class="filter-btn @(ViewBag.CurrentFilter == "active" || ViewBag.CurrentFilter == null ? "active" : "")">
                                 <i class="fas fa-check-circle"></i> Active Users
                             </a>
-                            <a href="@Url.Action("Index", new { filter = "inactive" })"
+                            <a href="@Url.Action("Index", new { filter = "inactive" })#users-section"
                                class="filter-btn @(ViewBag.CurrentFilter == "inactive" ? "active" : "")">
                                 <i class="fas fa-times-circle"></i> Inactive Users
                             </a>
-                            <a href="@Url.Action("Index", new { filter = "all" })"
+                            <a href="@Url.Action("Index", new { filter = "all" })#users-section"
                                class="filter-btn @(ViewBag.CurrentFilter == "all" ? "active" : "")">
                                 <i class="fas fa-users"></i> All Users
                             </a>
+                            <a href="@Url.Action("Index", new { filter = "pending" })#users-section"
+                               class="filter-btn filter-btn-pending @(ViewBag.CurrentFilter == "pending" ? "active" : "")">
+                                <i class="fas fa-clock"></i> Pending Approval
+                            </a>
                         </div>
+                    </div>
+
+                    <!-- Search and Filter Controls -->
+                    <div class="search-filter-section mb-4">
+                        <form method="get" action="@Url.Action("Index")#users-section" class="row g-3">
+                            <input type="hidden" name="filter" value="@ViewBag.CurrentFilter" />
+
+                            <!-- Username Search -->
+                            <div class="col-md-4">
+                                <label class="form-label text-white-75">
+                                    <i class="fas fa-search"></i> Search Username
+                                </label>
+                                <input type="text" name="search" class="form-control search-input"
+                                       placeholder="Enter username to search..."
+                                       value="@ViewBag.SearchTerm">
+                            </div>
+
+                            <!-- Date From -->
+                            <div class="col-md-3">
+                                <label class="form-label text-white-75">
+                                    <i class="fas fa-calendar-alt"></i> From Date
+                                </label>
+                                <input type="date" name="fromDate" class="form-control date-input"
+                                       value="@ViewBag.FromDate">
+                            </div>
+
+                            <!-- Date To -->
+                            <div class="col-md-2">
+                                <label class="form-label text-white-75">
+                                    <i class="fas fa-calendar-alt"></i> To Date
+                                </label>
+                                <input type="date" name="toDate" class="form-control date-input"
+                                       value="@ViewBag.ToDate">
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="col-md-3">
+                                <div class="d-flex gap-2 w-100" style="margin-top: 2.1rem; margin-left: 1rem;">
+                                    <button type="submit" class="btn btn-search">
+                                        <i class="fas fa-search"></i> Apply
+                                    </button>
+                                    <a href="@Url.Action("Index", new { filter = ViewBag.CurrentFilter })#users-section" class="btn btn-clear">
+                                        <i class="fas fa-times"></i> Clear
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
                     </div>
 
                     @if (Model?.Users?.Count > 0)
@@ -1025,13 +265,128 @@
                                 <table class="table">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Name</th>
-                                        <th>Username</th>
+                                        <th class="sortable" data-sort="id">
+                                            <a href="@Url.Action("Index", new {
+                                                filter = ViewBag.CurrentFilter,
+                                                search = ViewBag.SearchTerm,
+                                                fromDate = ViewBag.FromDate,
+                                                toDate = ViewBag.ToDate,
+                                                sortBy = "id",
+                                                sortOrder = (ViewBag.SortBy == "id" && ViewBag.SortOrder == "asc") ? "desc" : "asc"
+                                            })#users-section" class="sort-header">
+                                                ID
+                                                @if (ViewBag.SortBy == "id")
+                                                {
+                                                    <i class="fas fa-sort-@(ViewBag.SortOrder == "asc" ? "up" : "down")"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-sort"></i>
+                                                }
+                                            </a>
+                                        </th>
+                                        <th class="sortable" data-sort="name">
+                                            <a href="@Url.Action("Index", new {
+                                                filter = ViewBag.CurrentFilter,
+                                                search = ViewBag.SearchTerm,
+                                                fromDate = ViewBag.FromDate,
+                                                toDate = ViewBag.ToDate,
+                                                sortBy = "name",
+                                                sortOrder = (ViewBag.SortBy == "name" && ViewBag.SortOrder == "asc") ? "desc" : "asc"
+                                            })#users-section" class="sort-header">
+                                                Name
+                                                @if (ViewBag.SortBy == "name")
+                                                {
+                                                    <i class="fas fa-sort-@(ViewBag.SortOrder == "asc" ? "up" : "down")"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-sort"></i>
+                                                }
+                                            </a>
+                                        </th>
+                                        <th class="sortable" data-sort="username">
+                                            <a href="@Url.Action("Index", new {
+                                                filter = ViewBag.CurrentFilter,
+                                                search = ViewBag.SearchTerm,
+                                                fromDate = ViewBag.FromDate,
+                                                toDate = ViewBag.ToDate,
+                                                sortBy = "username",
+                                                sortOrder = (ViewBag.SortBy == "username" && ViewBag.SortOrder == "asc") ? "desc" : "asc"
+                                            })#users-section" class="sort-header">
+                                                Username
+                                                @if (ViewBag.SortBy == "username")
+                                                {
+                                                    <i class="fas fa-sort-@(ViewBag.SortOrder == "asc" ? "up" : "down")"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-sort"></i>
+                                                }
+                                            </a>
+                                        </th>
                                         <th>Email</th>
-                                        <th>Country</th>
-                                        <th>Status</th>
-                                        <th>Joined</th>
+                                        <th class="sortable" data-sort="country">
+                                            <a href="@Url.Action("Index", new {
+                                                filter = ViewBag.CurrentFilter,
+                                                search = ViewBag.SearchTerm,
+                                                fromDate = ViewBag.FromDate,
+                                                toDate = ViewBag.ToDate,
+                                                sortBy = "country",
+                                                sortOrder = (ViewBag.SortBy == "country" && ViewBag.SortOrder == "asc") ? "desc" : "asc"
+                                            })#users-section" class="sort-header">
+                                                Country
+                                                @if (ViewBag.SortBy == "country")
+                                                {
+                                                    <i class="fas fa-sort-@(ViewBag.SortOrder == "asc" ? "up" : "down")"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-sort"></i>
+                                                }
+                                            </a>
+                                        </th>
+                                        <th class="sortable" data-sort="status">
+                                            <a href="@Url.Action("Index", new {
+                                                filter = ViewBag.CurrentFilter,
+                                                search = ViewBag.SearchTerm,
+                                                fromDate = ViewBag.FromDate,
+                                                toDate = ViewBag.ToDate,
+                                                sortBy = "status",
+                                                sortOrder = (ViewBag.SortBy == "status" && ViewBag.SortOrder == "asc") ? "desc" : "asc"
+                                            })#users-section" class="sort-header">
+                                                Status
+                                                @if (ViewBag.SortBy == "status")
+                                                {
+                                                    <i class="fas fa-sort-@(ViewBag.SortOrder == "asc" ? "up" : "down")"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-sort"></i>
+                                                }
+                                            </a>
+                                        </th>
+                                        <th>Approval</th>
+                                        <th class="sortable" data-sort="joined">
+                                            <a href="@Url.Action("Index", new {
+                                                filter = ViewBag.CurrentFilter,
+                                                search = ViewBag.SearchTerm,
+                                                fromDate = ViewBag.FromDate,
+                                                toDate = ViewBag.ToDate,
+                                                sortBy = "joined",
+                                                sortOrder = (ViewBag.SortBy == "joined" && ViewBag.SortOrder == "asc") ? "desc" : "asc"
+                                            })#users-section" class="sort-header">
+                                                Joined
+                                                @if (ViewBag.SortBy == "joined")
+                                                {
+                                                    <i class="fas fa-sort-@(ViewBag.SortOrder == "asc" ? "up" : "down")"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-sort"></i>
+                                                }
+                                            </a>
+                                        </th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -1054,31 +409,62 @@
                                                     <span class="status-badge status-inactive">Inactive</span>
                                                 }
                                             </td>
+                                            <td>
+                                                @if (user.IsApproved)
+                                                {
+                                                    <span class="status-badge status-active">Approved</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="status-badge status-pending">Pending</span>
+                                                }
+                                            </td>
                                             <td>@user.CreatedDate.ToString("MMM dd, yyyy")</td>
                                             <td>
                                                 <div class="action-buttons">
-                                                    <a href="@Url.Action("EditUser", new { id = user.UserID })" class="btn btn-edit">
-                                                        <i class="fas fa-edit"></i> Edit
-                                                    </a>
-                                                    <form asp-action="ToggleUserStatus" method="post"
-                                                          id="toggleForm_@user.UserID">
-                                                        @Html.AntiForgeryToken()
-                                                        <input type="hidden" name="id" value="@user.UserID" />
-                                                        <input type="hidden" name="filter" value="@ViewBag.CurrentFilter" />
-                                                        <button type="submit" class="btn btn-toggle"
-                                                                onclick="return showToggleModal(@user.UserID, '@user.Username', @(user.IsActive.ToString().ToLower()))">
-                                                            <i class="fas fa-toggle-@(user.IsActive ? "off" : "on")"></i>
-                                                            @(user.IsActive ? "Deactivate" : "Activate")
-                                                        </button>
-                                                    </form>
-                                                    <form asp-action="DeleteUser" method="post"
-                                                          onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.');">
-                                                        @Html.AntiForgeryToken()
-                                                        <input type="hidden" name="id" value="@user.UserID" />
-                                                        <button type="submit" class="btn btn-delete">
-                                                            <i class="fas fa-trash"></i> Delete
-                                                        </button>
-                                                    </form>
+                                                    @if (!user.IsApproved)
+                                                    {
+                                                        <!-- Pending approval users: only show approve/reject buttons -->
+                                                        <form asp-action="ApproveUser" method="post" style="display: inline;" id="approveForm_@user.UserID">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@user.UserID" />
+                                                            <button type="button" class="btn btn-approve" onclick="showApprovalModal(@user.UserID, '@user.Username', 'approve')">
+                                                                <i class="fas fa-check"></i> Approve
+                                                            </button>
+                                                        </form>
+                                                        <form asp-action="RejectUser" method="post" style="display: inline;" id="rejectForm_@user.UserID">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@user.UserID" />
+                                                            <button type="button" class="btn btn-reject" onclick="showApprovalModal(@user.UserID, '@user.Username', 'reject')">
+                                                                <i class="fas fa-times"></i> Reject
+                                                            </button>
+                                                        </form>
+                                                    }
+                                                    else
+                                                    {
+                                                        <!-- Approved users: show edit, activate/deactivate, delete buttons -->
+                                                        <a href="@Url.Action("EditUser", new { id = user.UserID })" class="btn btn-edit">
+                                                            <i class="fas fa-edit"></i> Edit
+                                                        </a>
+                                                        <form asp-action="ToggleUserStatus" method="post"
+                                                              id="toggleForm_@user.UserID" style="display: inline;">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@user.UserID" />
+                                                            <input type="hidden" name="filter" value="@ViewBag.CurrentFilter" />
+                                                            <button type="submit" class="btn btn-toggle"
+                                                                    onclick="return showToggleModal(@user.UserID, '@user.Username', @(user.IsActive.ToString().ToLower()))">
+                                                                <i class="fas fa-toggle-@(user.IsActive ? "off" : "on")"></i>
+                                                                @(user.IsActive ? "Deactivate" : "Activate")
+                                                            </button>
+                                                        </form>
+                                                        <form asp-action="DeleteUser" method="post" style="display: inline;" id="deleteForm_@user.UserID">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@user.UserID" />
+                                                            <button type="button" class="btn btn-delete" onclick="showDeleteModal(@user.UserID, '@user.Username')">
+                                                                <i class="fas fa-trash"></i> Delete
+                                                            </button>
+                                                        </form>
+                                                    }
                                                 </div>
                                             </td>
                                         </tr>
@@ -1127,101 +513,9 @@
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            // Auto-hide alerts after 5 seconds
-            setTimeout(function() {
-                $('.alert').fadeOut();
-            }, 5000);
-
-            // Confirmation for delete actions
-            $('.btn-delete').click(function(e) {
-                if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
-                    e.preventDefault();
-                }
-            });
-
-            // Auto-focus on username field if login form is visible
-            if ($('.login-form').length > 0) {
-                $('input[name="Username"]').focus();
-            }
-        });
-
-        let currentUserId = null;
-        let currentUsername = null;
-        let currentIsActive = null;
-
-        function showToggleModal(userId, username, isActive) {
-            console.log('showToggleModal called with:', userId, username, isActive);
-            currentUserId = userId;
-            currentUsername = username;
-            currentIsActive = isActive;
-
-            const action = isActive ? 'deactivate' : 'activate';
-            const icon = isActive ? 'fa-toggle-off' : 'fa-toggle-on';
-            const color = isActive ? '#ff6b6b' : '#10B981';
-
-            document.getElementById('modalTitle').textContent = isActive ? 'Deactivate User' : 'Activate User';
-            document.getElementById('modalMessage').textContent = `Are you sure you want to ${action} this user?`;
-            document.getElementById('modalUsername').textContent = username;
-            document.getElementById('modalIcon').className = `fas ${icon}`;
-            document.getElementById('modalIcon').style.color = color;
-            document.getElementById('confirmButton').innerHTML = `<i class="fas fa-check"></i> ${action.charAt(0).toUpperCase() + action.slice(1)}`;
-
-            document.getElementById('confirmModal').style.display = 'flex';
-            console.log('Modal should now be visible');
-
-            // Return false to prevent the form submission
-            return false;
-        }
-
-        function closeModal() {
-            document.getElementById('confirmModal').style.display = 'none';
-            currentUserId = null;
-            currentUsername = null;
-            currentIsActive = null;
-        }
-
-        function confirmToggle() {
-            console.log('confirmToggle called for user ID:', currentUserId);
-            if (currentUserId) {
-                // Show loading state
-                document.getElementById('confirmButton').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-                document.getElementById('confirmButton').disabled = true;
-
-                // Submit the form
-                const form = document.getElementById(`toggleForm_${currentUserId}`);
-                console.log('Found form:', form);
-                if (form) {
-                    // Add a hidden input to track that we're processing
-                    const processingInput = document.createElement('input');
-                    processingInput.type = 'hidden';
-                    processingInput.name = 'processing';
-                    processingInput.value = 'true';
-                    form.appendChild(processingInput);
-
-                    console.log('Submitting form for user:', currentUserId);
-                    form.submit();
-                } else {
-                    console.error('Form not found for user ID:', currentUserId);
-                    alert('Error: Could not find form to submit. User ID: ' + currentUserId);
-                    closeModal();
-                }
-            } else {
-                console.error('No user ID set');
-                alert('Error: No user selected');
-                closeModal();
-            }
-        }
-
-        // Close modal when clicking outside of it
-        window.onclick = function(event) {
-            const modal = document.getElementById('confirmModal');
-            if (event.target == modal) {
-                closeModal();
-            }
-        }
-    </script>
+    <script src="~/js/jquery-3.6.0.min.js"></script>
+    <script src="~/js/admin-index.js"></script>
 </body>
 </html>
+
+cd "E:\ClasySys\ClasysProj\RegPortalNEW\RegistrationPortal".\Deploy-IIS.ps1 -CreateAppPools -CreateSites

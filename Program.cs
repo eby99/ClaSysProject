@@ -1,11 +1,58 @@
 using Microsoft.EntityFrameworkCore;
 using RegistrationPortal.Data;
 using RegistrationPortal.Services;
+using RegistrationPortal.Middleware;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Serilog
+var loggerConfig = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File(
+        path: "logs/app-.log",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30,
+        fileSizeLimitBytes: 10 * 1024 * 1024, // 10MB
+        rollOnFileSizeLimit: true,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}"
+    );
+
+// Add Windows Event Log for Web App (non-API requests) only in production on Windows
+if (!builder.Environment.IsDevelopment() && System.OperatingSystem.IsWindows())
+{
+    try
+    {
+        loggerConfig.WriteTo.EventLog(
+            source: "RegistrationPortal",
+            logName: "Application",
+            restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Warning,
+            outputTemplate: "[RegistrationPortal] {Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}"
+        );
+    }
+    catch (System.Security.SecurityException)
+    {
+        // EventLog source creation requires admin privileges
+        // This will be handled during deployment setup
+    }
+}
+
+Log.Logger = loggerConfig.CreateLogger();
+
+builder.Host.UseSerilog();
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Add API controllers with JSON configuration
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = null; // Keep PascalCase
+        options.JsonSerializerOptions.WriteIndented = true;
+    });
 
 // Add Entity Framework
 builder.Services.AddDbContext<RegistrationDbContext>(options =>
@@ -22,20 +69,51 @@ builder.Services.AddSession(options =>
 });
 
 // Add custom services
-builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<UserService>(); // Register the concrete implementation
+builder.Services.AddScoped<IUserApiService, UserApiService>();
+builder.Services.AddScoped<IUserService, HybridUserService>(); // Use hybrid service as the main implementation
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IPasswordService, PasswordService>();
-builder.Services.AddScoped<IValidationService, ValidationService>();
+builder.Services.AddScoped<IValidationService, ValidationService>(); // Add missing validation service
+
+// Add logging services
+builder.Services.AddScoped<IEventLoggerService, EventLoggerService>();
+builder.Services.AddScoped<IDatabaseLoggerService, DatabaseLoggerService>();
+
+// Add notification services
+builder.Services.AddScoped<IEmailNotificationService, EmailNotificationService>();
+builder.Services.AddHostedService<PendingApprovalNotificationService>();
+
+// Add HTTP client for API calls with configurable base URL
+builder.Services.AddHttpClient<IUserApiClientService, UserApiClientService>(client =>
+{
+    // Get API base URL from configuration
+    var apiBaseUrl = builder.Configuration.GetValue<string>("ApiBaseUrl");
+    
+    // If not configured, use environment-specific defaults
+    if (string.IsNullOrEmpty(apiBaseUrl))
+    {
+        if (builder.Environment.IsDevelopment())
+        {
+            apiBaseUrl = "https://localhost:7149"; // Development
+        }
+        else
+        {
+            // Production - you need to set this in appsettings.json
+            // For IIS virtual directory: "https://yourdomain.com/api/"
+            // For separate site: "https://api.yourdomain.com/"
+            apiBaseUrl = "https://localhost:7149"; // Fallback - replace with your production URL
+        }
+    }
+    
+    client.BaseAddress = new Uri(apiBaseUrl);
+    client.DefaultRequestHeaders.Add("User-Agent", "RegistrationPortal-MVC/1.0");
+});
 
 // Add memory cache
 builder.Services.AddMemoryCache();
 
-// Add logging
-builder.Services.AddLogging(logging =>
-{
-    logging.AddConsole();
-    logging.AddDebug();
-});
+// Logging is handled by Serilog
 
 // Add anti-forgery token
 builder.Services.AddAntiforgery(options =>
@@ -49,9 +127,11 @@ builder.Services.AddAntiforgery(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+// Use global exception handling middleware instead of default exception handler
+app.UseGlobalExceptionHandler();
+
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
     app.UseHttpsRedirection();
 }
@@ -74,6 +154,9 @@ app.UseRouting();
 // Add session middleware
 app.UseSession();
 
+// Add API logging middleware (only for /api paths)
+app.UseApiLogging();
+
 app.UseAuthorization();
 
 // Add security headers
@@ -83,23 +166,28 @@ app.Use(async (context, next) =>
     context.Response.Headers["X-Content-Type-Options"] = "nosniff";
     context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
     context.Response.Headers.Remove("Server");
-    
+
     await next();
 });
+
+// Map API controllers
+app.MapControllers();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Test database connection
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<RegistrationDbContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    
+
     try
     {
-        // Test connection to existing database
+        // Ensure database is created
+        await context.Database.EnsureCreatedAsync();
+        logger.LogInformation("Database ensured to exist");
+
         var canConnect = await context.Database.CanConnectAsync();
         if (canConnect)
         {
@@ -138,4 +226,16 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-app.Run();
+try
+{
+    Log.Information("Starting RegistrationPortal application");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

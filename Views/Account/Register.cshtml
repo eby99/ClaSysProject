@@ -512,6 +512,24 @@
             display: block;
         }
 
+        /* Input Error Styling */
+        .form-control.error {
+            border-color: #ff6b6b !important;
+            background: rgba(255, 107, 107, 0.1) !important;
+            animation: shake 0.3s ease-in-out;
+        }
+
+        .form-control.error:focus {
+            border-color: #ff6b6b !important;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
+        }
+
+        @@keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
         .success-message-field {
             color: #4facfe;
             font-size: 0.85rem;
@@ -659,6 +677,10 @@
             gap: 1rem;
         }
 
+        .loading-overlay.show {
+            display: flex !important;
+        }
+
         .loading-spinner {
             width: 60px;
             height: 60px;
@@ -768,6 +790,30 @@
                 width: 100%;
                 justify-content: center;
             }
+        }
+
+        /* Password Toggle */
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1rem;
+            z-index: 3;
+            padding: 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .password-toggle:hover {
+            color: var(--text-primary);
+        }
+
+        .input-container .form-control {
+            padding-right: 3.5rem;
         }
 
         /* Animation Classes */
@@ -1104,6 +1150,9 @@
                                         <div class="input-container">
                                             <input asp-for="Password" type="password" class="form-control" placeholder="Create strong password" required minlength="8" id="password-field">
                                             <i class="fas fa-lock input-icon"></i>
+                                            <button type="button" class="password-toggle" onclick="togglePasswordReg('password-field')">
+                                                <i class="fas fa-eye" id="toggleIcon_password-field"></i>
+                                            </button>
                                         </div>
                                         <div class="password-strength">
                                             <div class="password-strength-bar" id="strength-bar"></div>
@@ -1140,6 +1189,9 @@
                                         <div class="input-container">
                                             <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Re-enter password" required minlength="8" id="confirm-password-field">
                                             <i class="fas fa-lock input-icon"></i>
+                                            <button type="button" class="password-toggle" onclick="togglePasswordReg('confirm-password-field')">
+                                                <i class="fas fa-eye" id="toggleIcon_confirm-password-field"></i>
+                                            </button>
                                         </div>
                                         <div class="error-message" id="confirm-password-error">Passwords do not match</div>
                                         <div class="success-message-field" id="confirm-password-success">✓ Passwords match</div>
@@ -1252,7 +1304,7 @@
                         <i class="fas fa-check"></i>
                     </div>
                     <h2 style="color: var(--text-primary); margin-bottom: 1rem;">Account Created Successfully!</h2>
-                    <p style="color: var(--text-secondary); margin-bottom: 2rem;">Welcome to our community! You can now sign in with your credentials.</p>
+                    <p style="color: var(--text-secondary); margin-bottom: 2rem;">Your registration is complete! Your account is now pending admin approval. You will be notified once approved and can then sign in.</p>
                     <a href="@Url.Action("Login", "Account")" class="btn btn-primary">
                         <i class="fas fa-sign-in-alt"></i> Sign In
                     </a>
@@ -1260,7 +1312,7 @@
             </div>
 
             <!-- Footer -->
-            <div class="text-center mt-4">
+            <div class="text-center mt-4" id="registration-footer">
                 <p style="color: var(--text-muted);">
                     Already have an account?
                     <a href="@Url.Action("Login", "Account")" style="color: #4facfe; text-decoration: none;">Sign in here</a>
@@ -1659,34 +1711,37 @@
                 const $errorMsg = $('#confirm-password-error');
                 const $successMsg = $('#confirm-password-success');
 
-                // Only consider it a match if both fields have values AND they match AND password is strong
-                const passwordIsStrong = stepValidationStatus[3]['Password'] === true;
-                const isMatch = password && confirmPassword && password === confirmPassword && passwordIsStrong;
-                stepValidationStatus[3]['ConfirmPassword'] = isMatch;
+                // Hide messages by default
+                $errorMsg.removeClass('show');
+                $successMsg.removeClass('show');
 
+                // Only validate if confirm password field has content
                 if (confirmPassword.length > 0) {
                     if (password !== confirmPassword) {
                         // Passwords don't match
                         $errorMsg.text('Passwords do not match').addClass('show');
-                        $successMsg.removeClass('show');
-                    } else if (password === confirmPassword && password.length > 0) {
+                        stepValidationStatus[3]['ConfirmPassword'] = false;
+                        return false;
+                    } else {
+                        // Passwords match - check if main password is strong
+                        const passwordIsStrong = stepValidationStatus[3]['Password'] === true;
                         if (passwordIsStrong) {
-                            // Passwords match and password is strong
-                            $errorMsg.removeClass('show');
+                            // Both match and password is strong
                             $successMsg.addClass('show');
+                            stepValidationStatus[3]['ConfirmPassword'] = true;
+                            return true;
                         } else {
-                            // Passwords match but password is not strong enough
-                            $errorMsg.text('Password must meet all requirements first').addClass('show');
-                            $successMsg.removeClass('show');
+                            // Passwords match but main password is not strong enough
+                            $errorMsg.text('Password must meet all strength requirements first').addClass('show');
+                            stepValidationStatus[3]['ConfirmPassword'] = false;
+                            return false;
                         }
                     }
-                } else {
-                    // No confirm password entered yet
-                    $errorMsg.removeClass('show');
-                    $successMsg.removeClass('show');
                 }
 
-                return isMatch;
+                // No confirm password entered - mark as invalid
+                stepValidationStatus[3]['ConfirmPassword'] = false;
+                return false;
             }
 
             function getStepForField(fieldId) {
@@ -1816,20 +1871,22 @@
             }
 
             function showLoading() {
-                $('#loadingOverlay').fadeIn();
+                $('#loadingOverlay').addClass('show').fadeIn();
             }
 
             function hideLoading() {
-                $('#loadingOverlay').fadeOut();
+                $('#loadingOverlay').removeClass('show').fadeOut();
             }
 
             function showSuccessAndRedirect() {
                 $('.registration-card').fadeOut(function() {
-                    $('#successMessage').fadeIn();
-                    // Auto redirect after 3 seconds
+                    // Also hide the footer so only success message is visible
+                    $('#registration-footer').fadeOut();
+                    $('#successMessage').css('display', 'block').fadeIn();
+                    // Auto redirect after 5 seconds to give user time to read the approval message
                     setTimeout(function() {
                         window.location.href = '@Url.Action("Login", "Account")';
-                    }, 3000);
+                    }, 5000);
                 });
             }
 
@@ -1848,6 +1905,25 @@
                     particlesContainer.append(particle);
                 }
             }
+
+            // Password toggle function
+            function togglePasswordReg(fieldId) {
+                const field = document.getElementById(fieldId);
+                const toggleIcon = document.getElementById('toggleIcon_' + fieldId);
+
+                if (field.type === 'password') {
+                    field.type = 'text';
+                    toggleIcon.classList.remove('fa-eye');
+                    toggleIcon.classList.add('fa-eye-slash');
+                } else {
+                    field.type = 'password';
+                    toggleIcon.classList.remove('fa-eye-slash');
+                    toggleIcon.classList.add('fa-eye');
+                }
+            }
+
+            // Make toggle function globally accessible
+            window.togglePasswordReg = togglePasswordReg;
 
             // Don't auto-validate pre-filled fields on page load
             // Progress should start at 0 until user actually interacts with fields

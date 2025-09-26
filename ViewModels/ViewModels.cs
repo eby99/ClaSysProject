@@ -151,6 +151,22 @@ namespace RegistrationPortal.ViewModels
 
         [Display(Name = "Receive SMS")]
         public bool ReceiveSMS { get; set; }
+
+        [DataType(DataType.Password)]
+        [Display(Name = "New Password")]
+        public string? NewPassword { get; set; }
+
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm New Password")]
+        public string? ConfirmNewPassword { get; set; }
+
+        [StringLength(200)]
+        [Display(Name = "Security Question")]
+        public string? SecurityQuestion { get; set; }
+
+        [StringLength(100)]
+        [Display(Name = "Security Answer")]
+        public string? SecurityAnswer { get; set; }
     }
 
     public class UserProfileViewModel
@@ -198,6 +214,7 @@ namespace RegistrationPortal.ViewModels
         public string? Country { get; set; }
         public DateTime CreatedDate { get; set; }
         public bool IsActive { get; set; }
+        public bool IsApproved { get; set; }
         public bool ReceiveNewsletter { get; set; }
 
         public string FullName => $"{FirstName} {LastName}";
@@ -210,6 +227,7 @@ namespace RegistrationPortal.ViewModels
         public int NewUsersToday { get; set; }
         public int RecentUsers { get; set; }
         public int NewsletterSubscribers { get; set; }
+        public int PendingApproval { get; set; }
     }
 
     public class ErrorViewModel

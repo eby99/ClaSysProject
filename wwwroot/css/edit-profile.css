@@ -1,0 +1,493 @@
+/* Edit Profile Page Styles */
+:root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --glass-bg: rgba(255, 255, 255, 0.15);
+    --glass-border: rgba(255, 255, 255, 0.25);
+    --text-primary: rgba(255, 255, 255, 0.95);
+    --text-secondary: rgba(255, 255, 255, 0.8);
+    --text-muted: rgba(255, 255, 255, 0.6);
+    --shadow-light: 0 8px 32px rgba(31, 38, 135, 0.37);
+    --shadow-heavy: 0 25px 50px rgba(0, 0, 0, 0.25);
+    --success-color: #4CAF50;
+    --error-color: #f44336;
+    --warning-color: #ff9800;
+    --info-color: #2196F3;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: var(--primary-gradient);
+    background-attachment: fixed;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+/* Static Background */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.4) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(118, 75, 162, 0.4) 0%, transparent 50%),
+        radial-gradient(circle at 40% 80%, rgba(240, 147, 251, 0.4) 0%, transparent 50%);
+    z-index: -1;
+}
+
+/* Main Container */
+.edit-profile-container {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    padding: 2rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    box-shadow: var(--shadow-heavy);
+    color: var(--text-primary);
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.profile-header {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+    padding: 2rem;
+    text-align: center;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.profile-header h2 {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+.profile-header .subtitle {
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+    font-size: 1rem;
+}
+
+.profile-body {
+    padding: 2rem;
+}
+
+/* Form Sections */
+.form-section {
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.section-title i {
+    color: #4facfe;
+}
+
+/* Input Groups */
+.input-group-custom {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.input-group-custom label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.required {
+    color: #ff6b6b;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.875rem 1rem 0.875rem 2.75rem;
+    background: rgba(255, 255, 255, 0.25) !important;
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    color: #ffffff !important;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+/* Fix for autofilled fields */
+.form-control:-webkit-autofill,
+.form-control:-webkit-autofill:hover,
+.form-control:-webkit-autofill:focus,
+.form-control:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px rgba(255, 255, 255, 0.25) inset !important;
+    -webkit-text-fill-color: #ffffff !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Ensure text is always visible */
+input.form-control,
+textarea.form-control,
+select.form-control {
+    color: #ffffff !important;
+    font-weight: 500 !important;
+}
+
+/* Fix dropdown options visibility */
+select.form-control option {
+    background: #2a2a2a !important;
+    color: #ffffff !important;
+    font-weight: 500 !important;
+}
+
+/* Fix dropdown selected text */
+select.form-control:focus,
+select.form-control:active,
+select.form-control {
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.25) !important;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #4facfe;
+    box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.2);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.form-control::placeholder {
+    color: var(--text-muted);
+}
+
+/* Input Icons - Fixed positioning to match your existing design */
+.input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    z-index: 2;
+    pointer-events: none;
+    margin-top: 12px !important;
+}
+
+/* Special positioning for textareas */
+.input-group-custom:has(textarea) .input-icon {
+    top: 2.5rem !important;
+    transform: none !important;
+    margin-top: 0 !important;
+}
+
+/* Force icon alignment for all input states */
+.input-group-custom .input-icon {
+    top: calc(1.375rem + 12px) !important;
+    transform: none !important;
+}
+
+/* Special positioning for select dropdowns */
+.input-group-custom:has(select) .input-icon {
+    top: calc(1.375rem + 12px) !important;
+    transform: none !important;
+    margin-top: 0 !important;
+}
+
+/* Validation States */
+.field-valid .form-control {
+    border-color: var(--success-color);
+    background: rgba(76, 175, 80, 0.1);
+}
+
+.field-error .form-control {
+    border-color: var(--error-color);
+    background: rgba(244, 67, 54, 0.1);
+}
+
+.field-valid .input-icon {
+    color: var(--success-color);
+}
+
+.field-error .input-icon {
+    color: var(--error-color);
+}
+
+/* Validation Messages - Hidden by default, show only when validation state changes */
+.validation-message {
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    display: none; /* Hidden by default */
+    animation: slideDown 0.3s ease;
+}
+
+/* Only show validation messages when explicitly set to show */
+.validation-message.show {
+    display: block !important;
+}
+
+.error-message {
+    background: rgba(244, 67, 54, 0.1);
+    color: #ffcdd2;
+    border-left: 3px solid var(--error-color);
+}
+
+.success-message {
+    background: rgba(76, 175, 80, 0.1);
+    color: #c8e6c9;
+    border-left: 3px solid var(--success-color);
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Bio Character Counter */
+.bio-counter {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 0.25rem;
+}
+
+/* Inline Validation Indicators */
+.inline-validation {
+    position: absolute;
+    right: 1rem;
+    top: calc(1.375rem + 12px) !important;
+    transform: none !important;
+    z-index: 3;
+}
+
+.validation-spinner,
+.validation-check,
+.validation-cross {
+    font-size: 1rem;
+}
+
+.text-success {
+    color: var(--success-color) !important;
+}
+
+.text-danger {
+    color: var(--error-color) !important;
+}
+
+/* Checkboxes */
+.form-check {
+    margin: 0.75rem 0;
+}
+
+.form-check-input {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-right: 0.75rem;
+    accent-color: #4facfe;
+}
+
+.form-check-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+/* Buttons */
+.btn-group-custom {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 0.875rem 2rem;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+    min-width: 140px;
+}
+
+.btn-primary {
+    background: var(--success-gradient);
+    color: white;
+    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(79, 172, 254, 0.6);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    border: 1px solid var(--glass-border);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Loading States */
+.loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    margin-left: -10px;
+    margin-top: -10px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Alert Messages */
+.alert {
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    animation: slideDown 0.3s ease;
+}
+
+.alert-success {
+    background: rgba(76, 175, 80, 0.15);
+    color: #c8e6c9;
+    border-left: 4px solid var(--success-color);
+}
+
+.alert-danger {
+    background: rgba(244, 67, 54, 0.15);
+    color: #ffcdd2;
+    border-left: 4px solid var(--error-color);
+}
+
+.d-none {
+    display: none !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .edit-profile-container {
+        padding: 1rem;
+    }
+
+    .profile-card {
+        margin: 0 1rem;
+    }
+
+    .profile-header,
+    .profile-body {
+        padding: 1.5rem;
+    }
+
+    .btn-group-custom {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+    }
+
+    .form-control {
+        padding: 0.75rem 1rem 0.75rem 2.5rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Animation for field focus */
+.input-group-custom:focus-within .input-icon {
+    color: #4facfe;
+    transform: scale(1.1);
+}
+
+.input-group-custom:focus-within label {
+    color: #4facfe;
+}
+
+/* Smooth transitions */
+* {
+    box-sizing: border-box;
+}
+
+.form-control,
+.btn,
+.validation-message,
+.input-icon {
+    transition: all 0.3s ease;
+}

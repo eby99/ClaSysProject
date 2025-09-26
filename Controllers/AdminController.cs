@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using RegistrationPortal.Data;
 using RegistrationPortal.Services;
 using RegistrationPortal.ViewModels;
@@ -11,21 +12,25 @@ namespace RegistrationPortal.Controllers
         private readonly IAdminService _adminService;
         private readonly IUserService _userService;
         private readonly RegistrationDbContext _context;
+        private readonly IEventLoggerService _eventLogger;
+        private readonly IConfiguration _configuration;
 
-        public AdminController(IAdminService adminService, IUserService userService, RegistrationDbContext context)
+        public AdminController(IAdminService adminService, IUserService userService, RegistrationDbContext context, IEventLoggerService eventLogger, IConfiguration configuration)
         {
             _adminService = adminService;
             _userService = userService;
             _context = context;
+            _eventLogger = eventLogger;
+            _configuration = configuration;
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(string filter = "active")
+        public async Task<IActionResult> Index(string filter = "active", string search = "", string fromDate = "", string toDate = "", string sortBy = "", string sortOrder = "asc")
         {
             var adminId = HttpContext.Session.GetInt32("AdminID");
             if (adminId.HasValue)
             {
-                return await ShowDashboard(filter);
+                return await ShowDashboard(filter, search, fromDate, toDate, sortBy, sortOrder);
             }
             else
             {
@@ -157,7 +162,7 @@ namespace RegistrationPortal.Controllers
             return View("Index", new AdminLoginViewModel());
         }
 
-        private async Task<IActionResult> ShowDashboard(string filter = "active")
+        private async Task<IActionResult> ShowDashboard(string filter = "active", string search = "", string fromDate = "", string toDate = "", string sortBy = "", string sortOrder = "asc")
         {
             ViewBag.ShowLogin = false;
             ViewBag.ShowDashboard = true;
@@ -166,15 +171,94 @@ namespace RegistrationPortal.Controllers
             {
                 var stats = await _userService.GetDashboardStatsAsync();
 
-                // Determine filter value
-                bool? isActiveFilter = filter?.ToLower() switch
+                List<Models.User> users;
+                switch (filter?.ToLower())
                 {
-                    "all" => null,
-                    "inactive" => false,
-                    _ => true // default to active
-                };
+                    case "pending":
+                        // Show only unapproved users
+                        users = await _userService.GetUnapprovedUsersAsync();
+                        break;
+                    case "active":
+                        // Show only active AND approved users
+                        var activeUsers = await _userService.GetAllUsersAsync(true);
+                        users = activeUsers.Where(u => u.IsApproved).ToList();
+                        break;
+                    case "inactive":
+                        // Show only inactive users (regardless of approval status)
+                        var inactiveUsers = await _userService.GetAllUsersAsync(false);
+                        users = inactiveUsers.ToList();
+                        break;
+                    case "all":
+                        // Show all APPROVED users regardless of active/inactive status (but exclude pending)
+                        var allUsers = await _userService.GetAllUsersAsync(null);
+                        users = allUsers.Where(u => u.IsApproved).ToList();
+                        break;
+                    default:
+                        // Default to active approved users
+                        var defaultUsers = await _userService.GetAllUsersAsync(true);
+                        users = defaultUsers.Where(u => u.IsApproved).ToList();
+                        break;
+                }
 
-                var users = await _userService.GetAllUsersAsync(isActiveFilter);
+                // Apply search filter if provided
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    users = users.Where(u =>
+                        u.Username.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                        u.FirstName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                        u.LastName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                        u.Email.Contains(search, StringComparison.OrdinalIgnoreCase)
+                    ).ToList();
+                }
+
+                // Apply date filter if provided
+                if (!string.IsNullOrWhiteSpace(fromDate) && DateTime.TryParse(fromDate, out DateTime from))
+                {
+                    users = users.Where(u => u.CreatedDate.Date >= from.Date).ToList();
+                }
+
+                if (!string.IsNullOrWhiteSpace(toDate) && DateTime.TryParse(toDate, out DateTime to))
+                {
+                    users = users.Where(u => u.CreatedDate.Date <= to.Date).ToList();
+                }
+
+                // Apply sorting
+                if (!string.IsNullOrWhiteSpace(sortBy))
+                {
+                    bool isDescending = sortOrder?.ToLower() == "desc";
+
+                    switch (sortBy.ToLower())
+                    {
+                        case "id":
+                            users = isDescending ? users.OrderByDescending(u => u.UserID).ToList()
+                                                 : users.OrderBy(u => u.UserID).ToList();
+                            break;
+                        case "name":
+                            users = isDescending ? users.OrderByDescending(u => u.FirstName).ThenByDescending(u => u.LastName).ToList()
+                                                 : users.OrderBy(u => u.FirstName).ThenBy(u => u.LastName).ToList();
+                            break;
+                        case "username":
+                            users = isDescending ? users.OrderByDescending(u => u.Username).ToList()
+                                                 : users.OrderBy(u => u.Username).ToList();
+                            break;
+                        case "country":
+                            users = isDescending ? users.OrderByDescending(u => u.Country).ToList()
+                                                 : users.OrderBy(u => u.Country).ToList();
+                            break;
+                        case "status":
+                            users = isDescending ? users.OrderByDescending(u => u.IsActive).ThenByDescending(u => u.IsApproved).ToList()
+                                                 : users.OrderBy(u => u.IsActive).ThenBy(u => u.IsApproved).ToList();
+                            break;
+                        case "joined":
+                            users = isDescending ? users.OrderByDescending(u => u.CreatedDate).ToList()
+                                                 : users.OrderBy(u => u.CreatedDate).ToList();
+                            break;
+                        default:
+                            // Default sort by ID ascending
+                            users = users.OrderBy(u => u.UserID).ToList();
+                            break;
+                    }
+                }
 
                 var viewModel = new AdminDashboardViewModel
                 {
@@ -189,12 +273,18 @@ namespace RegistrationPortal.Controllers
                         Country = u.Country,
                         CreatedDate = u.CreatedDate,
                         IsActive = u.IsActive,
+                        IsApproved = u.IsApproved,
                         ReceiveNewsletter = u.ReceiveNewsletter
                     }).ToList()
                 };
 
                 ViewBag.AdminUsername = HttpContext.Session.GetString("AdminUsername");
                 ViewBag.CurrentFilter = filter;
+                ViewBag.SearchTerm = search;
+                ViewBag.FromDate = fromDate;
+                ViewBag.ToDate = toDate;
+                ViewBag.SortBy = sortBy;
+                ViewBag.SortOrder = sortOrder;
                 return View("Index", viewModel);
             }
             catch (Exception)
@@ -223,10 +313,21 @@ namespace RegistrationPortal.Controllers
                 {
                     HttpContext.Session.SetInt32("AdminID", admin.AdminID);
                     HttpContext.Session.SetString("AdminUsername", admin.Username);
+
+                    // Log admin login
+                    _eventLogger.LogUserAction("Admin Login", admin.Username,
+                        $"Admin successful login from IP: {HttpContext.Connection.RemoteIpAddress}");
+                    _eventLogger.LogSecurityEvent("Admin Authentication", admin.Username,
+                        HttpContext.Connection.RemoteIpAddress?.ToString(), "Admin login successful");
+
                     return await ShowDashboard();
                 }
                 else
                 {
+                    // Log failed admin login
+                    _eventLogger.LogSecurityEvent("Admin Login Failed", model.Username,
+                        HttpContext.Connection.RemoteIpAddress?.ToString(), "Invalid admin credentials");
+
                     ModelState.AddModelError("", "Invalid admin credentials. Please try again.");
                 }
             }
@@ -243,6 +344,15 @@ namespace RegistrationPortal.Controllers
         [HttpPost]
         public IActionResult Logout()
         {
+            var adminUsername = HttpContext.Session.GetString("AdminUsername");
+
+            // Log admin logout
+            if (!string.IsNullOrEmpty(adminUsername))
+            {
+                _eventLogger.LogUserAction("Admin Logout", adminUsername,
+                    $"Admin logged out from IP: {HttpContext.Connection.RemoteIpAddress}");
+            }
+
             HttpContext.Session.Remove("AdminID");
             HttpContext.Session.Remove("AdminUsername");
             return RedirectToAction("Index");
@@ -342,6 +452,11 @@ namespace RegistrationPortal.Controllers
                 var result = await _userService.UpdateUserAsync(user);
                 if (result)
                 {
+                    // Log admin action
+                    var adminUsername = HttpContext.Session.GetString("AdminUsername");
+                    _eventLogger.LogUserAction("Admin Edit User", adminUsername,
+                        $"Admin {adminUsername} edited user {user.Username} (ID: {user.UserID})");
+
                     TempData["SuccessMessage"] = "User updated successfully.";
                 }
                 else
@@ -369,9 +484,19 @@ namespace RegistrationPortal.Controllers
 
             try
             {
+                var userToDelete = await _userService.GetUserByIdAsync(id);
                 var result = await _userService.DeleteUserAsync(id);
+
                 if (result)
                 {
+                    // Log admin action
+                    var adminUsername = HttpContext.Session.GetString("AdminUsername");
+                    _eventLogger.LogUserAction("Admin Delete User", adminUsername,
+                        $"Admin {adminUsername} deleted user {userToDelete?.Username ?? "Unknown"} (ID: {id})");
+                    _eventLogger.LogSecurityEvent("User Deletion", adminUsername,
+                        HttpContext.Connection.RemoteIpAddress?.ToString(),
+                        $"User {userToDelete?.Username ?? "Unknown"} (ID: {id}) was deleted by admin");
+
                     TempData["SuccessMessage"] = "User deleted successfully.";
                 }
                 else
@@ -412,7 +537,13 @@ namespace RegistrationPortal.Controllers
                         var updatedUser = await _userService.GetUserByIdForAdminAsync(id);
                         if (updatedUser != null && updatedUser.IsActive == user.IsActive)
                         {
-                            TempData["SuccessMessage"] = $"User '{user.Username}' {(user.IsActive ? "activated" : "deactivated")} successfully.";
+                            // Log admin action
+                            var adminUsername = HttpContext.Session.GetString("AdminUsername");
+                            var action = user.IsActive ? "activated" : "deactivated";
+                            _eventLogger.LogUserAction($"Admin {action.Substring(0, 1).ToUpper()}{action.Substring(1)} User",
+                                adminUsername, $"Admin {adminUsername} {action} user {user.Username} (ID: {id})");
+
+                            TempData["SuccessMessage"] = $"User '{user.Username}' {action} successfully.";
                         }
                         else
                         {
@@ -447,6 +578,165 @@ namespace RegistrationPortal.Controllers
             }
 
             return RedirectToAction("Index", new { t = DateTime.Now.Ticks });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveUser(int id)
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminID");
+            if (!adminId.HasValue)
+            {
+                return RedirectToAction("AdminLogin");
+            }
+
+            try
+            {
+                // For API mode, use HttpClient to call the approve endpoint directly
+                if (_configuration.GetValue<bool>("UseApiMode", false))
+                {
+                    using var httpClient = new HttpClient();
+                    var apiBaseUrl = _configuration.GetValue<string>("ApiBaseUrl", "http://localhost:8080").TrimEnd('/');
+
+                    var response = await httpClient.PostAsync($"{apiBaseUrl}/api/UsersApi/{id}/approve", null);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var user = await _userService.GetUserByIdForAdminAsync(id);
+                        var username = user?.Username ?? "Unknown";
+
+                        // Log admin action
+                        var adminUsername = HttpContext.Session.GetString("AdminUsername");
+                        _eventLogger.LogUserAction("Admin User Approval", adminUsername,
+                            $"Admin {adminUsername} approved user {username} (ID: {id})");
+                        _eventLogger.LogSecurityEvent("User Approval", adminUsername,
+                            HttpContext.Connection.RemoteIpAddress?.ToString(),
+                            $"User {username} (ID: {id}) was approved by admin");
+
+                        TempData["SuccessMessage"] = $"User {username} has been approved successfully.";
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = "Failed to approve user via API.";
+                    }
+                }
+                else
+                {
+                    // Direct database mode
+                    var user = await _userService.GetUserByIdForAdminAsync(id);
+                    if (user != null)
+                    {
+                        user.IsApproved = true;
+
+                        var result = await _userService.UpdateUserAsync(user);
+                        if (result)
+                        {
+                            // Log admin action
+                            var adminUsername = HttpContext.Session.GetString("AdminUsername");
+                            _eventLogger.LogUserAction("Admin User Approval", adminUsername,
+                                $"Admin {adminUsername} approved user {user.Username} (ID: {id})");
+                            _eventLogger.LogSecurityEvent("User Approval", adminUsername,
+                                HttpContext.Connection.RemoteIpAddress?.ToString(),
+                                $"User {user.Username} (ID: {id}) was approved by admin");
+
+                            TempData["SuccessMessage"] = $"User {user.Username} has been approved successfully.";
+                        }
+                        else
+                        {
+                            TempData["ErrorMessage"] = "Failed to approve user.";
+                        }
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = "User not found.";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"An error occurred while approving user: {ex.Message}";
+            }
+
+            return RedirectToAction("Index", new { filter = "pending", t = DateTime.Now.Ticks });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectUser(int id)
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminID");
+            if (!adminId.HasValue)
+            {
+                return RedirectToAction("AdminLogin");
+            }
+
+            try
+            {
+                // For API mode, use HttpClient to call the reject endpoint directly
+                if (_configuration.GetValue<bool>("UseApiMode", false))
+                {
+                    var user = await _userService.GetUserByIdForAdminAsync(id);
+                    var username = user?.Username ?? "Unknown";
+
+                    using var httpClient = new HttpClient();
+                    var apiBaseUrl = _configuration.GetValue<string>("ApiBaseUrl", "http://localhost:8080").TrimEnd('/');
+
+                    var response = await httpClient.PostAsync($"{apiBaseUrl}/api/UsersApi/{id}/reject", null);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        // Log admin action
+                        var adminUsername = HttpContext.Session.GetString("AdminUsername");
+                        _eventLogger.LogUserAction("Admin User Rejection", adminUsername,
+                            $"Admin {adminUsername} rejected user {username} (ID: {id})");
+                        _eventLogger.LogSecurityEvent("User Rejection", adminUsername,
+                            HttpContext.Connection.RemoteIpAddress?.ToString(),
+                            $"User {username} (ID: {id}) was rejected and deleted by admin");
+
+                        TempData["SuccessMessage"] = $"User {username} has been rejected and their account deleted.";
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = "Failed to reject user via API.";
+                    }
+                }
+                else
+                {
+                    // Direct database mode
+                    var user = await _userService.GetUserByIdForAdminAsync(id);
+                    if (user != null)
+                    {
+                        // Log admin action before deletion
+                        var adminUsername = HttpContext.Session.GetString("AdminUsername");
+                        _eventLogger.LogUserAction("Admin User Rejection", adminUsername,
+                            $"Admin {adminUsername} rejected user {user.Username} (ID: {id})");
+                        _eventLogger.LogSecurityEvent("User Rejection", adminUsername,
+                            HttpContext.Connection.RemoteIpAddress?.ToString(),
+                            $"User {user.Username} (ID: {id}) was rejected and deleted by admin");
+
+                        // Delete the user account
+                        var result = await _userService.DeleteUserAsync(id);
+                        if (result)
+                        {
+                            TempData["SuccessMessage"] = $"User {user.Username} has been rejected and their account deleted.";
+                        }
+                        else
+                        {
+                            TempData["ErrorMessage"] = "Failed to reject user.";
+                        }
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = "User not found.";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"An error occurred while rejecting user: {ex.Message}";
+            }
+
+            return RedirectToAction("Index", new { filter = "pending", t = DateTime.Now.Ticks });
         }
 
         [HttpPost]

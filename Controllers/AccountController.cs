@@ -10,11 +10,15 @@ namespace RegistrationPortal.Controllers
     {
         private readonly IUserService _userService;
         private readonly IPasswordService _passwordService;
+        private readonly HybridUserService? _hybridUserService;
+        private readonly IEventLoggerService _eventLogger;
 
-        public AccountController(IUserService userService, IPasswordService passwordService)
+        public AccountController(IUserService userService, IPasswordService passwordService, IEventLoggerService eventLogger)
         {
             _userService = userService;
             _passwordService = passwordService;
+            _hybridUserService = userService as HybridUserService;
+            _eventLogger = eventLogger;
         }
 
         [HttpGet]
@@ -49,18 +53,37 @@ namespace RegistrationPortal.Controllers
 
                 if (user != null)
                 {
+                    // Check if user is approved
+                    if (!user.IsApproved)
+                    {
+                        _eventLogger.LogSecurityEvent("Login Attempt - Unapproved", user.Username,
+                            HttpContext.Connection.RemoteIpAddress?.ToString(), "Login attempt by unapproved user");
+
+                        ModelState.AddModelError("", "Your account is pending admin approval. Please wait for approval before logging in.");
+                        return View(model);
+                    }
+
                     HttpContext.Session.SetInt32("UserID", user.UserID);
                     HttpContext.Session.SetString("Username", user.Username);
                     HttpContext.Session.SetString("FirstName", user.FirstName);
                     HttpContext.Session.SetString("LastName", user.LastName);
                     HttpContext.Session.SetString("Email", user.Email);
 
+                    // Log successful login
+                    _eventLogger.LogUserAction("Login", user.Username,
+                        $"Successful login from IP: {HttpContext.Connection.RemoteIpAddress}");
+                    _eventLogger.LogSecurityEvent("User Login", user.Username,
+                        HttpContext.Connection.RemoteIpAddress?.ToString(), "Successful authentication");
 
                     TempData["LoginSuccess"] = true;
                     return RedirectToAction("Profile");
                 }
                 else
                 {
+                    // Log failed login attempt
+                    _eventLogger.LogSecurityEvent("Login Failed", model.UsernameEmail,
+                        HttpContext.Connection.RemoteIpAddress?.ToString(), "Invalid credentials provided");
+
                     ModelState.AddModelError("", "Invalid username or password. Please try again.");
                 }
             }
@@ -132,34 +155,121 @@ namespace RegistrationPortal.Controllers
                     UserAgent = Request.Headers.UserAgent.ToString()
                 };
 
+                // Store plain password temporarily for API mode
+                _hybridUserService?.StoreTemporaryPassword(user.Username, model.Password);
+
                 var result = await _userService.CreateUserAsync(user);
 
                 if (result > 0)
                 {
-                    TempData["SuccessMessage"] = "Registration successful! Please log in with your new account.";
+                    // Log successful registration
+                    _eventLogger.LogUserAction("Registration", model.Username,
+                        $"New user registered from IP: {HttpContext.Connection.RemoteIpAddress}");
+                    _eventLogger.LogSecurityEvent("User Registration", model.Username,
+                        HttpContext.Connection.RemoteIpAddress?.ToString(), "New account created successfully");
+
+                    // Check if this is an AJAX request
+                    if (Request.Headers.XRequestedWith == "XMLHttpRequest")
+                    {
+                        return Json(new {
+                            success = true,
+                            message = "Registration successful! Your account is pending admin approval. You will be notified once approved.",
+                            userName = model.FirstName
+                        });
+                    }
+
+                    TempData["SuccessMessage"] = "Registration successful! Your account is pending admin approval. You will be notified once approved.";
                     TempData["NewUserName"] = model.FirstName;
                     return RedirectToAction("Login");
                 }
                 else if (result == -1)
                 {
-                    ModelState.AddModelError("Username", "Username is already taken. Please choose a different one.");
+                    var errorMessage = "Username is already taken. Please choose a different one.";
+                    ModelState.AddModelError("Username", errorMessage);
+
+                    // For AJAX requests, return JSON with field-specific errors
+                    if (Request.Headers.XRequestedWith == "XMLHttpRequest")
+                    {
+                        return Json(new {
+                            success = false,
+                            message = "Registration failed due to validation errors.",
+                            errors = new Dictionary<string, string>
+                            {
+                                ["Username"] = errorMessage
+                            }
+                        });
+                    }
                 }
                 else if (result == -2)
                 {
-                    ModelState.AddModelError("Email", "Email address is already registered. Please use a different email or sign in.");
+                    var errorMessage = "Email address is already registered. Please use a different email or sign in.";
+                    ModelState.AddModelError("Email", errorMessage);
+
+                    // For AJAX requests, return JSON with field-specific errors
+                    if (Request.Headers.XRequestedWith == "XMLHttpRequest")
+                    {
+                        return Json(new {
+                            success = false,
+                            message = "Registration failed due to validation errors.",
+                            errors = new Dictionary<string, string>
+                            {
+                                ["Email"] = errorMessage
+                            }
+                        });
+                    }
                 }
                 else if (result == -3)
                 {
-                    ModelState.AddModelError("PhoneNumber", "Phone number is already registered. Please use a different phone number.");
+                    var errorMessage = "Phone number is already registered. Please use a different phone number.";
+                    ModelState.AddModelError("PhoneNumber", errorMessage);
+
+                    // For AJAX requests, return JSON with field-specific errors
+                    if (Request.Headers.XRequestedWith == "XMLHttpRequest")
+                    {
+                        return Json(new {
+                            success = false,
+                            message = "Registration failed due to validation errors.",
+                            errors = new Dictionary<string, string>
+                            {
+                                ["PhoneNumber"] = errorMessage
+                            }
+                        });
+                    }
                 }
                 else
                 {
-                    ModelState.AddModelError("", "Registration failed. Please try again.");
+                    var errorMessage = "Registration failed. Please try again.";
+                    ModelState.AddModelError("", errorMessage);
+
+                    // For AJAX requests, return JSON error
+                    if (Request.Headers.XRequestedWith == "XMLHttpRequest")
+                    {
+                        return Json(new {
+                            success = false,
+                            message = errorMessage
+                        });
+                    }
                 }
             }
             catch (Exception)
             {
                 ModelState.AddModelError("", "An error occurred during registration. Please try again.");
+            }
+
+            // Handle AJAX request errors
+            if (Request.Headers.XRequestedWith == "XMLHttpRequest")
+            {
+                var errors = ModelState
+                    .Where(x => x.Value.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.First().ErrorMessage
+                    );
+
+                return Json(new {
+                    success = false,
+                    errors = errors
+                });
             }
 
             return View(model);
@@ -259,16 +369,17 @@ namespace RegistrationPortal.Controllers
             if (string.IsNullOrWhiteSpace(usernameOrEmail))
                 return Json(new { success = false, message = "Please enter username or email" });
 
-            var user = await _userService.GetUserByUsernameAsync(usernameOrEmail) ??
-                       await _userService.GetUserByEmailAsync(usernameOrEmail);
+            var result = _hybridUserService != null
+                ? await _hybridUserService.GetSecurityQuestionAsync(usernameOrEmail)
+                : (false, null, null, "Service not available");
 
-            if (user == null)
-                return Json(new { success = false, message = "No account found with this username or email" });
+            if (!result.Success)
+                return Json(new { success = false, message = result.Message ?? "No account found with this username or email" });
 
             return Json(new {
                 success = true,
-                securityQuestion = user.SecurityQuestion,
-                userId = user.UserID
+                securityQuestion = result.SecurityQuestion,
+                userId = result.UserId
             });
         }
 
@@ -279,51 +390,55 @@ namespace RegistrationPortal.Controllers
             if (string.IsNullOrWhiteSpace(securityAnswer))
                 return Json(new { success = false, message = "Please enter security answer" });
 
-            var user = await _userService.GetUserByIdAsync(userId);
-            if (user == null)
-                return Json(new { success = false, message = "User not found" });
+            var result = _hybridUserService != null
+                ? await _hybridUserService.VerifySecurityAnswerAsync(userId, securityAnswer)
+                : (false, null, "Service not available");
 
-            if (string.Equals(user.SecurityAnswer.Trim(), securityAnswer.Trim(), StringComparison.OrdinalIgnoreCase))
-            {
-                // Generate reset token (simple approach - in production use proper token generation)
-                var resetToken = Guid.NewGuid().ToString();
-                TempData["ResetToken"] = resetToken;
-                TempData["ResetUserId"] = userId;
+            if (!result.Success)
+                return Json(new { success = false, message = result.Message ?? "Incorrect security answer" });
 
-                return Json(new { success = true, message = "Security answer verified", resetToken = resetToken });
-            }
+            // Store token in TempData for backward compatibility
+            TempData["ResetToken"] = result.ResetToken;
+            TempData["ResetUserId"] = userId;
 
-            return Json(new { success = false, message = "Incorrect security answer" });
+            return Json(new { success = true, message = result.Message ?? "Security answer verified", resetToken = result.ResetToken });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> ResetPassword(string resetToken, string newPassword)
         {
-            var storedToken = TempData["ResetToken"]?.ToString();
-            var userIdObj = TempData["ResetUserId"];
-
-            if (storedToken != resetToken || userIdObj == null)
-                return Json(new { success = false, message = "Invalid or expired reset token" });
-
-            if (!int.TryParse(userIdObj.ToString(), out int userId))
-                return Json(new { success = false, message = "Invalid user data" });
-
             if (!_passwordService.IsValidPassword(newPassword))
                 return Json(new { success = false, message = "Password does not meet security requirements" });
 
-            var user = await _userService.GetUserByIdAsync(userId);
-            if (user == null)
-                return Json(new { success = false, message = "User not found" });
+            var result = _hybridUserService != null
+                ? await _hybridUserService.ResetPasswordAsync(resetToken, newPassword)
+                : (false, "Service not available");
 
-            user.PasswordHash = _passwordService.HashPassword(newPassword);
-            user.LastModified = DateTime.Now;
+            if (!result.Item1) // Access first item (Success) of tuple
+            {
+                // Fallback to TempData approach for backward compatibility
+                var storedToken = TempData["ResetToken"]?.ToString();
+                var userIdObj = TempData["ResetUserId"];
 
-            var result = await _userService.UpdateUserAsync(user);
-            if (result)
-                return Json(new { success = true, message = "Password reset successfully" });
+                if (storedToken == resetToken && userIdObj != null && int.TryParse(userIdObj.ToString(), out int userId))
+                {
+                    var user = await _userService.GetUserByIdAsync(userId);
+                    if (user != null)
+                    {
+                        user.PasswordHash = _passwordService.HashPassword(newPassword);
+                        user.LastModified = DateTime.Now;
 
-            return Json(new { success = false, message = "Failed to reset password" });
+                        var updateResult = await _userService.UpdateUserAsync(user);
+                        if (updateResult)
+                            return Json(new { success = true, message = "Password reset successfully" });
+                    }
+                }
+
+                return Json(new { success = false, message = result.Item2 ?? "Failed to reset password" }); // Access second item (Message)
+            }
+
+            return Json(new { success = true, message = result.Item2 ?? "Password reset successfully" }); // Access second item (Message)
         }
 
         [HttpGet]
@@ -415,7 +530,9 @@ namespace RegistrationPortal.Controllers
                     ZipCode = user.ZipCode,
                     Bio = user.Bio,
                     ReceiveNewsletter = user.ReceiveNewsletter,
-                    ReceiveSMS = user.ReceiveSMS
+                    ReceiveSMS = user.ReceiveSMS,
+                    SecurityQuestion = user.SecurityQuestion,
+                    SecurityAnswer = user.SecurityAnswer
                 };
 
                 return View(viewModel);
@@ -434,6 +551,10 @@ namespace RegistrationPortal.Controllers
             var userId = HttpContext.Session.GetInt32("UserID");
             if (!userId.HasValue)
             {
+                if (Request.Headers.Accept.ToString().Contains("application/json"))
+                {
+                    return Json(new { success = false, message = "Session expired. Please login again." });
+                }
                 return RedirectToAction("Login");
             }
 
@@ -442,6 +563,14 @@ namespace RegistrationPortal.Controllers
 
             if (!ModelState.IsValid)
             {
+                if (Request.Headers.Accept.ToString().Contains("application/json"))
+                {
+                    var errors = ModelState
+                        .Where(x => x.Value.Errors.Count > 0)
+                        .Select(x => new { Field = x.Key, Errors = x.Value.Errors.Select(e => e.ErrorMessage) })
+                        .ToList();
+                    return Json(new { success = false, message = "Validation failed.", errors = errors });
+                }
                 return View(model);
             }
 
@@ -455,20 +584,27 @@ namespace RegistrationPortal.Controllers
 
                     if (age < 18)
                     {
-                        ModelState.AddModelError("DateOfBirth", "You must be at least 18 years old.");
+                        var errorMessage = "You must be at least 18 years old.";
+                        if (Request.Headers.Accept.ToString().Contains("application/json"))
+                        {
+                            return Json(new { success = false, message = errorMessage });
+                        }
+                        ModelState.AddModelError("DateOfBirth", errorMessage);
                         return View(model);
                     }
                 }
 
-                // Get existing user
+                // Get existing user through API service
                 var existingUser = await _userService.GetUserByIdAsync(userId.Value);
                 if (existingUser == null)
                 {
+                    var errorMessage = "User not found. Please login again.";
+                    if (Request.Headers.Accept.ToString().Contains("application/json"))
+                    {
+                        return Json(new { success = false, message = errorMessage });
+                    }
                     return RedirectToAction("Login");
                 }
-
-                // TEMPORARY: Disable uniqueness checks to test basic functionality
-                // TODO: Re-implement proper uniqueness validation later
 
                 // Update user entity
                 existingUser.FirstName = model.FirstName.Trim();
@@ -487,21 +623,79 @@ namespace RegistrationPortal.Controllers
                 existingUser.ReceiveNewsletter = model.ReceiveNewsletter;
                 existingUser.ReceiveSMS = model.ReceiveSMS;
 
+                // Update password if provided
+                if (!string.IsNullOrEmpty(model.NewPassword))
+                {
+                    if (model.NewPassword != model.ConfirmNewPassword)
+                    {
+                        var errorMessage = "Password confirmation does not match.";
+                        if (Request.Headers.Accept.ToString().Contains("application/json"))
+                        {
+                            return Json(new { success = false, message = errorMessage });
+                        }
+                        ModelState.AddModelError("ConfirmNewPassword", errorMessage);
+                        return View(model);
+                    }
+
+                    if (model.NewPassword.Length < 6)
+                    {
+                        var errorMessage = "Password must be at least 6 characters long.";
+                        if (Request.Headers.Accept.ToString().Contains("application/json"))
+                        {
+                            return Json(new { success = false, message = errorMessage });
+                        }
+                        ModelState.AddModelError("NewPassword", errorMessage);
+                        return View(model);
+                    }
+
+                    existingUser.PasswordHash = _passwordService.HashPassword(model.NewPassword);
+                }
+
+                // Update security question and answer if provided
+                if (!string.IsNullOrEmpty(model.SecurityQuestion))
+                {
+                    existingUser.SecurityQuestion = model.SecurityQuestion.Trim();
+                }
+
+                if (!string.IsNullOrEmpty(model.SecurityAnswer))
+                {
+                    existingUser.SecurityAnswer = model.SecurityAnswer.Trim();
+                }
+
+                // Update through API service (HybridUserService will route appropriately)
                 bool updateResult = await _userService.UpdateUserAsync(existingUser);
 
                 if (updateResult)
                 {
-                    TempData["ProfileUpdateSuccess"] = "Profile updated successfully!";
+                    var successMessage = "Profile updated successfully!";
+                    if (Request.Headers.Accept.ToString().Contains("application/json"))
+                    {
+                        return Json(new { success = true, message = successMessage });
+                    }
+                    TempData["ProfileUpdateSuccess"] = successMessage;
                     return RedirectToAction("Profile");
                 }
                 else
                 {
-                    ModelState.AddModelError("", "Update failed. Please check your information and try again.");
+                    var errorMessage = "Update failed. Please check your information and try again.";
+                    if (Request.Headers.Accept.ToString().Contains("application/json"))
+                    {
+                        return Json(new { success = false, message = errorMessage });
+                    }
+                    ModelState.AddModelError("", errorMessage);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                ModelState.AddModelError("", "An error occurred while updating your profile.");
+                // Log the exception for debugging
+                _eventLogger.LogError("Profile update error", ex, $"User ID: {userId.Value}");
+
+                var errorMessage = "An error occurred while updating your profile.";
+                if (Request.Headers.Accept.ToString().Contains("application/json"))
+                {
+                    return Json(new { success = false, message = errorMessage });
+                }
+                ModelState.AddModelError("", errorMessage);
             }
 
             return View(model);
@@ -510,10 +704,79 @@ namespace RegistrationPortal.Controllers
         [HttpPost]
         public IActionResult Logout()
         {
+            var username = HttpContext.Session.GetString("Username");
+
+            // Log logout
+            if (!string.IsNullOrEmpty(username))
+            {
+                _eventLogger.LogUserAction("Logout", username,
+                    $"User logged out from IP: {HttpContext.Connection.RemoteIpAddress}");
+            }
+
             HttpContext.Session.Clear();
 
-
             return RedirectToAction("Login");
+        }
+
+        // AJAX endpoints for real-time validation
+        [HttpPost]
+        public async Task<IActionResult> CheckUsername(string username)
+        {
+            if (string.IsNullOrEmpty(username))
+            {
+                return Json(new { available = false });
+            }
+
+            try
+            {
+                var isAvailable = await _userService.IsUsernameAvailableAsync(username);
+                return Json(new { available = isAvailable });
+            }
+            catch (Exception ex)
+            {
+                _eventLogger.LogError($"Error checking username availability: {username}", ex);
+                return Json(new { available = false });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CheckEmail(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                return Json(new { available = false });
+            }
+
+            try
+            {
+                var isAvailable = await _userService.IsEmailAvailableAsync(email);
+                return Json(new { available = isAvailable });
+            }
+            catch (Exception ex)
+            {
+                _eventLogger.LogError($"Error checking email availability: {email}", ex);
+                return Json(new { available = false });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CheckPhoneNumber(string phoneNumber)
+        {
+            if (string.IsNullOrEmpty(phoneNumber))
+            {
+                return Json(new { available = false });
+            }
+
+            try
+            {
+                var isAvailable = await _userService.IsPhoneAvailableAsync(phoneNumber);
+                return Json(new { available = isAvailable });
+            }
+            catch (Exception ex)
+            {
+                _eventLogger.LogError($"Error checking phone number availability: {phoneNumber}", ex);
+                return Json(new { available = false });
+            }
         }
     }
 }

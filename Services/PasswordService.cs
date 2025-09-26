@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace RegistrationPortal.Services
 {
@@ -15,9 +16,15 @@ namespace RegistrationPortal.Services
 
     public class PasswordService : IPasswordService
     {
+        private readonly ILogger<PasswordService> _logger;
         private const int MinPasswordLength = 8;
         private const int MaxPasswordLength = 128;
         private const string SpecialCharacters = "@$!%*?&";
+
+        public PasswordService(ILogger<PasswordService> logger)
+        {
+            _logger = logger;
+        }
 
         public string HashPassword(string password)
         {
@@ -43,15 +50,24 @@ namespace RegistrationPortal.Services
         public bool VerifyPassword(string password, string hashedPassword)
         {
             if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(hashedPassword))
+            {
+                _logger.LogWarning("VerifyPassword: null or empty password or hash provided");
                 return false;
+            }
 
             try
             {
                 string hashOfInput = HashPassword(password);
-                return StringComparer.OrdinalIgnoreCase.Compare(hashOfInput, hashedPassword) == 0;
+                _logger.LogInformation("Password verification - Input password hash: {InputHash}, Stored hash: {StoredHash}", hashOfInput, hashedPassword);
+
+                bool result = StringComparer.OrdinalIgnoreCase.Compare(hashOfInput, hashedPassword) == 0;
+                _logger.LogInformation("Password verification result: {Result}", result);
+
+                return result;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Error during password verification");
                 return false;
             }
         }

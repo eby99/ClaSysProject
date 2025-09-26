@@ -1,0 +1,86 @@
+ 🔧 HOW TO USE NORMAL TAB (Fix Browser Cache)
+
+  Option 1: Clear Browser Cache (Recommended)
+
+  1. Press: Ctrl + Shift + Delete
+  2. Select: "All time" or "Everything"
+  3. Check: Cached images and files, Cookies, Site data
+  4. Clear and restart browser
+  5. Go to: http://registrationportal.local/ - should work normally     
+  now
+
+  Option 2: Hard Refresh
+
+  1. Go to: http://registrationportal.local/
+  2. Press: Ctrl + Shift + R (hard refresh)
+  3. Or: Ctrl + F5
+
+  ---
+  🔄 AFTER PC RESTART - NO COMMANDS NEEDED!
+
+  ✅ AUTOMATIC STARTUP:
+
+  When you restart your PC:
+
+  1. ✅ IIS starts automatically - No commands needed
+  2. ✅ SQL Server starts automatically - Database ready
+  3. ✅ Your app auto-loads - IIS manages everything
+  4. 🌐 Just click: http://registrationportal.local/ - Works
+  immediately!
+
+  🎯 WHAT HAPPENS AUTOMATICALLY:
+
+  - Windows Service: IIS starts with Windows
+  - Application Pool: ClasysProjectPool starts automatically
+  - Database: SQL Server Express starts with Windows
+  - Your App: Loads when first request arrives
+
+  No dotnet commands, no terminal, no manual startup required! 🚀       
+
+  ---
+  🔄 AFTER CODE/DATABASE CHANGES
+
+  For Code Changes:
+
+  1. Build & Publish:
+  cd E:\ClasySys\ClasysProj\RegPortalNEW\RegistrationPortal
+  dotnet publish -c Release -o temp_publish
+  2. Deploy to IIS:
+  powershell -Command "Start-Process PowerShell -ArgumentList '-File    
+   E:\ClasySys\ClasysProj\RegPortalNEW\RegistrationPortal\Fix-IIS-De    
+  ployment.ps1' -Verb RunAs -Wait"
+
+  For Database Changes:
+
+  - No action needed - Database changes reflect immediately
+  - IIS app connects directly to your database
+
+  For Configuration Changes:
+
+  - Edit: C:\inetpub\wwwroot\ClaysyProject\appsettings.json
+  - Restart IIS:
+  powershell -Command "Start-Process PowerShell -ArgumentList
+  '-Command \"iisreset\"' -Verb RunAs -Wait"
+
+  ---
+  📋 QUICK REFERENCE SUMMARY
+
+  | Scenario            | Action Required                         |     
+  |---------------------|-----------------------------------------|     
+  | 🔄 PC Restart       | ✅ Nothing - Just click the link         |    
+  | 🌐 Daily Usage      | ✅ Nothing - Just click the link         |    
+  | 💻 Code Changes     | 🔧 Build → Publish → Deploy script      |     
+  | 💾 Database Changes | ✅ Nothing - Changes reflect immediately |    
+  | ⚙️ Config Changes   | 🔧 Edit appsettings.json → Restart IIS  |     
+  | 🧹 Browser Issues   | 🔧 Clear cache or use incognito         |     
+
+  ---
+  🎯 YOUR PRODUCTION SETUP IS COMPLETE!
+
+  🌐 Bookmark this: http://registrationportal.local/
+
+  - ✅ Production ready - Professional IIS hosting
+  - ✅ Persistent - Survives reboots automatically
+  - ✅ Fast - No startup delays
+  - ✅ Reliable - Enterprise-grade hosting
+  - ✅ Full featured - All functionality working

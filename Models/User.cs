@@ -87,6 +87,8 @@ namespace RegistrationPortal.Models
 
         public bool IsActive { get; set; } = true;
 
+        public bool IsApproved { get; set; } = false;
+
         [NotMapped]
         public string FullName => $"{FirstName} {LastName}";
 

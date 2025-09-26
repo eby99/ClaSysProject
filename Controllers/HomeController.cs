@@ -23,6 +23,17 @@ namespace RegistrationPortal.Controllers
 
         public IActionResult Index()
         {
+            // Check if user is logged in via session
+            var userId = HttpContext.Session.GetInt32("UserID");
+            var adminId = HttpContext.Session.GetInt32("AdminID");
+
+            // If any user is logged in, clear their session to log them out
+            if (userId.HasValue || adminId.HasValue)
+            {
+                HttpContext.Session.Clear();
+                TempData["LogoutMessage"] = "You have been logged out successfully.";
+            }
+
             return View(); // This will show the landing page
         }
 
