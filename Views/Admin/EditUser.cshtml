@@ -36,23 +36,33 @@
                 @Html.HiddenFor(m => m.UserID)
 
                 <div class="form-grid">
+                    <!-- Personal Information Section -->
+                    <div class="section-header">
+                        <h3><i class="fas fa-user"></i> Personal Information</h3>
+                    </div>
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
                             <div class="form-group">
-                        <label asp-for="FirstName" class="form-label">
-                            First Name <span class="required">*</span>
-                        </label>
-                        <input asp-for="FirstName" class="form-control" placeholder="Enter first name" required />
+                                <label asp-for="FirstName" class="form-label">
+                                    <i class="fas fa-user"></i> First Name <span class="required">*</span>
+                                </label>
+                                <div class="input-container">
+                                    <input asp-for="FirstName" class="form-control" placeholder="Enter first name" required />
+                                    <div class="validation-icon"></div>
+                                </div>
                                 <span asp-validation-for="FirstName" class="text-danger"></span>
                             </div>
                         </div>
 
                         <div class="col-12 col-md-6">
                             <div class="form-group">
-                        <label asp-for="LastName" class="form-label">
-                            Last Name <span class="required">*</span>
-                        </label>
-                        <input asp-for="LastName" class="form-control" placeholder="Enter last name" required />
+                                <label asp-for="LastName" class="form-label">
+                                    <i class="fas fa-user"></i> Last Name <span class="required">*</span>
+                                </label>
+                                <div class="input-container">
+                                    <input asp-for="LastName" class="form-control" placeholder="Enter last name" required />
+                                    <div class="validation-icon"></div>
+                                </div>
                                 <span asp-validation-for="LastName" class="text-danger"></span>
                             </div>
                         </div>
@@ -60,10 +70,13 @@
                         <div class="col-12">
                             <div class="form-group">
                                 <label asp-for="Username" class="form-label">
-                                    Username <span class="required">*</span>
+                                    <i class="fas fa-at"></i> Username <span class="required">*</span>
                                 </label>
-                                <input asp-for="Username" class="form-control" placeholder="Enter username" readonly
-                                       style="background: rgba(255, 255, 255, 0.05); cursor: not-allowed;" />
+                                <div class="input-container">
+                                    <input asp-for="Username" class="form-control" placeholder="Enter username" readonly
+                                           style="background: rgba(255, 255, 255, 0.05); cursor: not-allowed;" />
+                                    <div class="validation-icon"></div>
+                                </div>
                                 <small style="color: var(--text-muted); font-size: 0.8rem;">Username cannot be changed</small>
                             </div>
                         </div>
@@ -71,9 +84,12 @@
                         <div class="col-12 col-md-6">
                             <div class="form-group">
                                 <label asp-for="Email" class="form-label">
-                                    Email Address <span class="required">*</span>
+                                    <i class="fas fa-envelope"></i> Email Address <span class="required">*</span>
                                 </label>
-                                <input asp-for="Email" type="email" class="form-control" placeholder="Enter email address" required />
+                                <div class="input-container">
+                                    <input asp-for="Email" type="email" class="form-control" placeholder="Enter email address" required />
+                                    <div class="validation-icon"></div>
+                                </div>
                                 <span asp-validation-for="Email" class="text-danger"></span>
                             </div>
                         </div>
@@ -81,9 +97,12 @@
                         <div class="col-12 col-md-6">
                             <div class="form-group">
                                 <label asp-for="PhoneNumber" class="form-label">
-                                    Phone Number
+                                    <i class="fas fa-phone"></i> Phone Number
                                 </label>
-                                <input asp-for="PhoneNumber" type="tel" class="form-control" placeholder="Enter phone number" />
+                                <div class="input-container">
+                                    <input asp-for="PhoneNumber" type="tel" class="form-control" placeholder="Enter phone number" />
+                                    <div class="validation-icon"></div>
+                                </div>
                                 <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                             </div>
                         </div>
@@ -91,9 +110,12 @@
                         <div class="col-12 col-md-6">
                             <div class="form-group">
                                 <label asp-for="DateOfBirth" class="form-label">
-                                    Date of Birth
+                                    <i class="fas fa-calendar-alt"></i> Date of Birth
                                 </label>
-                                <input asp-for="DateOfBirth" type="date" class="form-control" id="dobInput" />
+                                <div class="input-container">
+                                    <input asp-for="DateOfBirth" type="date" class="form-control" id="dobInput" />
+                                    <div class="validation-icon"></div>
+                                </div>
                                 <span asp-validation-for="DateOfBirth" class="text-danger"></span>
                             </div>
                         </div>
@@ -101,37 +123,83 @@
                         <div class="col-12 col-md-6">
                             <div class="form-group">
                                 <label asp-for="Gender" class="form-label">
-                                    Gender
+                                    <i class="fas fa-venus-mars"></i> Gender
                                 </label>
-                                <select asp-for="Gender" class="form-control">
-                                    <option value="">Select Gender</option>
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Other">Other</option>
-                                    <option value="PreferNot">Prefer not to say</option>
-                                </select>
+                                <div class="input-container">
+                                    <select asp-for="Gender" class="form-control">
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                        <option value="PreferNot">Prefer not to say</option>
+                                    </select>
+                                    <div class="validation-icon"></div>
+                                </div>
                                 <span asp-validation-for="Gender" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Password Section -->
+                        <div class="col-12">
+                            <div class="section-header">
+                                <h3><i class="fas fa-lock"></i> Security (Optional)</h3>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <div class="form-group">
+                                <label asp-for="NewPassword" class="form-label">
+                                    <i class="fas fa-key"></i> New Password (Optional)
+                                </label>
+                                <div class="input-container">
+                                    <input asp-for="NewPassword" type="password" class="form-control" placeholder="Enter new password" />
+                                    <div class="validation-icon"></div>
+                                </div>
+                                <span asp-validation-for="NewPassword" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <div class="form-group">
+                                <label asp-for="ConfirmNewPassword" class="form-label">
+                                    <i class="fas fa-key"></i> Confirm New Password
+                                </label>
+                                <div class="input-container">
+                                    <input asp-for="ConfirmNewPassword" type="password" class="form-control" placeholder="Confirm new password" />
+                                    <div class="validation-icon"></div>
+                                </div>
+                                <span asp-validation-for="ConfirmNewPassword" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Address Information Section -->
+                        <div class="col-12">
+                            <div class="section-header">
+                                <h3><i class="fas fa-map-marker-alt"></i> Address Information</h3>
                             </div>
                         </div>
 
                         <div class="col-12 col-md-6">
                             <div class="form-group">
                                 <label asp-for="Country" class="form-label">
-                                    Country
+                                    <i class="fas fa-globe"></i> Country
                                 </label>
-                                <select asp-for="Country" class="form-control">
-                                    <option value="">Select Country</option>
-                                    <option value="US">United States</option>
-                                    <option value="UK">United Kingdom</option>
-                                    <option value="CA">Canada</option>
-                                    <option value="AU">Australia</option>
-                                    <option value="IN">India</option>
-                                    <option value="DE">Germany</option>
-                                    <option value="FR">France</option>
-                                    <option value="JP">Japan</option>
-                                    <option value="BR">Brazil</option>
-                                    <option value="Other">Other</option>
-                                </select>
+                                <div class="input-container">
+                                    <select asp-for="Country" class="form-control">
+                                        <option value="">Select Country</option>
+                                        <option value="US">United States</option>
+                                        <option value="UK">United Kingdom</option>
+                                        <option value="CA">Canada</option>
+                                        <option value="AU">Australia</option>
+                                        <option value="IN">India</option>
+                                        <option value="DE">Germany</option>
+                                        <option value="FR">France</option>
+                                        <option value="JP">Japan</option>
+                                        <option value="BR">Brazil</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                    <div class="validation-icon"></div>
+                                </div>
                                 <span asp-validation-for="Country" class="text-danger"></span>
                             </div>
                         </div>
@@ -139,9 +207,12 @@
                         <div class="col-12 col-md-6">
                             <div class="form-group">
                                 <label asp-for="StreetAddress" class="form-label">
-                                    Street Address
+                                    <i class="fas fa-home"></i> Street Address
                                 </label>
-                                <input asp-for="StreetAddress" class="form-control" placeholder="Enter street address" />
+                                <div class="input-container">
+                                    <input asp-for="StreetAddress" class="form-control" placeholder="Enter street address" />
+                                    <div class="validation-icon"></div>
+                                </div>
                                 <span asp-validation-for="StreetAddress" class="text-danger"></span>
                             </div>
                         </div>
@@ -149,9 +220,12 @@
                         <div class="col-12 col-md-6">
                             <div class="form-group">
                                 <label asp-for="City" class="form-label">
-                                    City
+                                    <i class="fas fa-city"></i> City
                                 </label>
-                                <input asp-for="City" class="form-control" placeholder="Enter city" />
+                                <div class="input-container">
+                                    <input asp-for="City" class="form-control" placeholder="Enter city" />
+                                    <div class="validation-icon"></div>
+                                </div>
                                 <span asp-validation-for="City" class="text-danger"></span>
                             </div>
                         </div>
@@ -159,9 +233,12 @@
                         <div class="col-12 col-md-6">
                             <div class="form-group">
                                 <label asp-for="State" class="form-label">
-                                    State/Province
+                                    <i class="fas fa-map"></i> State/Province
                                 </label>
-                                <input asp-for="State" class="form-control" placeholder="Enter state" />
+                                <div class="input-container">
+                                    <input asp-for="State" class="form-control" placeholder="Enter state" />
+                                    <div class="validation-icon"></div>
+                                </div>
                                 <span asp-validation-for="State" class="text-danger"></span>
                             </div>
                         </div>
@@ -169,49 +246,68 @@
                         <div class="col-12 col-md-6">
                             <div class="form-group">
                                 <label asp-for="ZipCode" class="form-label">
-                                    ZIP/Postal Code
+                                    <i class="fas fa-mail-bulk"></i> ZIP/Postal Code
                                 </label>
-                                <input asp-for="ZipCode" class="form-control" placeholder="Enter ZIP code" />
+                                <div class="input-container">
+                                    <input asp-for="ZipCode" class="form-control" placeholder="Enter ZIP code" />
+                                    <div class="validation-icon"></div>
+                                </div>
                                 <span asp-validation-for="ZipCode" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Additional Information -->
+                        <div class="col-12">
+                            <div class="section-header">
+                                <h3><i class="fas fa-info-circle"></i> Additional Information</h3>
                             </div>
                         </div>
 
                         <div class="col-12">
                             <div class="form-group">
                                 <label asp-for="Bio" class="form-label">
-                                    Bio
+                                    <i class="fas fa-user-edit"></i> Bio
                                 </label>
-                                <textarea asp-for="Bio" class="form-control" rows="4" placeholder="Enter bio..."></textarea>
+                                <div class="input-container">
+                                    <textarea asp-for="Bio" class="form-control" rows="4" placeholder="Enter bio..."></textarea>
+                                    <div class="validation-icon"></div>
+                                </div>
                                 <span asp-validation-for="Bio" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Account Settings Section -->
+                        <div class="col-12">
+                            <div class="section-header">
+                                <h3><i class="fas fa-cog"></i> Account Settings</h3>
                             </div>
                         </div>
 
                         <div class="col-12 col-md-6">
                             <div class="form-group">
-                                <label class="form-label">Account Settings</label>
                                 <div class="checkbox-group">
                                     <div class="checkbox-wrapper">
                                         <input asp-for="IsActive" type="checkbox" />
                                     </div>
-                                    <label asp-for="IsActive">Account is active</label>
+                                    <label asp-for="IsActive"><i class="fas fa-user-check"></i> Account is active</label>
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-12 col-md-6">
                             <div class="form-group">
-                                <label class="form-label">Communication Preferences</label>
+                                <label class="form-label"><i class="fas fa-bell"></i> Communication Preferences</label>
                                 <div class="checkbox-group">
                                     <div class="checkbox-wrapper">
                                         <input asp-for="ReceiveNewsletter" type="checkbox" />
                                     </div>
-                                    <label asp-for="ReceiveNewsletter">Receive newsletters</label>
+                                    <label asp-for="ReceiveNewsletter"><i class="fas fa-envelope"></i> Receive newsletters</label>
                                 </div>
                                 <div class="checkbox-group">
                                     <div class="checkbox-wrapper">
                                         <input asp-for="ReceiveSMS" type="checkbox" />
                                     </div>
-                                    <label asp-for="ReceiveSMS">Receive SMS notifications</label>
+                                    <label asp-for="ReceiveSMS"><i class="fas fa-sms"></i> Receive SMS notifications</label>
                                 </div>
                             </div>
                         </div>
@@ -220,7 +316,7 @@
 
                 <div class="button-group">
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Save Changes
+                        <i class="fas fa-save"></i> Update Profile
                     </button>
                     <a href="@Url.Action("Index")" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Back to Dashboard

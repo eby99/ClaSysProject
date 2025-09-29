@@ -1,0 +1,105 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "🌐 Debug Web App",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/bin/Debug/net8.0/RegistrationPortal.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+                "uriFormat": "%s"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "http://localhost:5000"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        },
+        {
+            "name": "🔌 Debug Web API",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/bin/Debug/net8.0/RegistrationPortal.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+                "uriFormat": "%s/api/UsersApi"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "api",
+                "ASPNETCORE_URLS": "http://localhost:8090"
+            }
+        },
+        {
+            "name": "📧 Debug Email Service",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/bin/Debug/net8.0/RegistrationPortal.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "http://localhost:5500",
+                "DEBUG_EMAIL_SERVICE": "true",
+                "NotificationService__CheckIntervalMinutes": "1",
+                "NotificationService__Enabled": "true",
+                "NotificationService__NotificationThresholdHours": "0"
+            }
+        },
+        {
+            "name": "🔗 Debug Combined (Web + API)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/bin/Debug/net8.0/RegistrationPortal.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+                "uriFormat": "%s"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "http://localhost:5000",
+                "DEBUG_MODE": "Combined",
+                "ApiBaseUrl": "http://localhost:8090/",
+                "DEBUG_EMAIL_SERVICE": "true",
+                "NotificationService__CheckIntervalMinutes": "2",
+                "NotificationService__Enabled": "true"
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "🚀 Multi-Debug: Web App + API",
+            "configurations": [
+                "🌐 Debug Web App",
+                "🔌 Debug Web API"
+            ]
+        },
+        {
+            "name": "🎯 Full Debug: Web + API + Email",
+            "configurations": [
+                "🌐 Debug Web App",
+                "🔌 Debug Web API",
+                "📧 Debug Email Service"
+            ]
+        }
+    ]
+}

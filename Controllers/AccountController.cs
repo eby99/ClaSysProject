@@ -778,5 +778,27 @@ namespace RegistrationPortal.Controllers
                 return Json(new { available = false });
             }
         }
+
+        [HttpGet]
+        public async Task<JsonResult> CheckSamePassword(int userId, string newPassword)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(newPassword))
+                    return Json(new { isSamePassword = false });
+
+                var user = await _userService.GetUserByIdAsync(userId);
+                if (user == null)
+                    return Json(new { isSamePassword = false });
+
+                bool isSamePassword = _passwordService.VerifyPassword(newPassword, user.PasswordHash);
+                return Json(new { isSamePassword = isSamePassword });
+            }
+            catch (Exception ex)
+            {
+                _eventLogger.LogError($"Error checking same password for user {userId}", ex);
+                return Json(new { isSamePassword = false });
+            }
+        }
     }
 }

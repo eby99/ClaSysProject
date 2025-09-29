@@ -1,9 +1,50 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Validation icon management
+    function updateValidationIcon(field, isValid, hasError) {
+        field.classList.remove('valid', 'error');
+        if (hasError) {
+            field.classList.add('error');
+        } else if (isValid && field.value.trim() !== '') {
+            field.classList.add('valid');
+        }
+    }
+
     // Auto-focus on first name field
     const firstNameField = document.querySelector('input[name="FirstName"]');
     if (firstNameField) {
         firstNameField.focus();
     }
+
+    // Add validation icons to all input fields on load
+    const allInputs = document.querySelectorAll('.form-control');
+    allInputs.forEach(input => {
+        // Add event listeners for real-time validation
+        input.addEventListener('input', function() {
+            const value = this.value.trim();
+            const hasError = this.classList.contains('error');
+
+            if (!hasError && value !== '' && !this.readOnly) {
+                updateValidationIcon(this, true, false);
+            } else if (hasError) {
+                updateValidationIcon(this, false, true);
+            } else {
+                updateValidationIcon(this, false, false);
+            }
+        });
+
+        input.addEventListener('blur', function() {
+            const value = this.value.trim();
+            const hasError = this.classList.contains('error');
+
+            if (!hasError && value !== '' && !this.readOnly) {
+                updateValidationIcon(this, true, false);
+            } else if (hasError) {
+                updateValidationIcon(this, false, true);
+            } else {
+                updateValidationIcon(this, false, false);
+            }
+        });
+    });
 
     // Name field validation - only alphabets
     const nameFields = document.querySelectorAll('input[name="FirstName"], input[name="LastName"]');
@@ -53,10 +94,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (errorSpan) {
                 if (value.length > 0 && value.length !== 10) {
                     errorSpan.textContent = 'Phone number must be exactly 10 digits.';
-                    e.target.classList.add('error');
+                    updateValidationIcon(e.target, false, true);
                 } else {
                     errorSpan.textContent = '';
-                    e.target.classList.remove('error');
+                    updateValidationIcon(e.target, value.length === 10, false);
                 }
             }
         });
@@ -126,10 +167,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (errorSpan) {
                 if (value.length > 0 && value.length !== 6) {
                     errorSpan.textContent = 'ZIP/Postal code must be exactly 6 digits.';
-                    e.target.classList.add('error');
+                    updateValidationIcon(e.target, false, true);
                 } else {
                     errorSpan.textContent = '';
-                    e.target.classList.remove('error');
+                    updateValidationIcon(e.target, value.length === 6, false);
                 }
             }
         });
@@ -180,19 +221,98 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Check age range (18-80 years)
                 if (age < 18) {
                     errorSpan.textContent = 'User must be at least 18 years old.';
-                    field.classList.add('error');
+                    updateValidationIcon(field, false, true);
                 } else if (age > 80) {
                     errorSpan.textContent = 'User cannot be older than 80 years.';
-                    field.classList.add('error');
+                    updateValidationIcon(field, false, true);
                 } else {
                     errorSpan.textContent = '';
-                    field.classList.remove('error');
+                    updateValidationIcon(field, true, false);
                 }
             } else if (errorSpan && !value) {
                 errorSpan.textContent = '';
-                field.classList.remove('error');
+                updateValidationIcon(field, false, false);
             }
         }
+    }
+
+    // Password validation
+    const newPasswordField = document.querySelector('input[name="NewPassword"]');
+    const confirmPasswordField = document.querySelector('input[name="ConfirmNewPassword"]');
+
+    if (newPasswordField) {
+        newPasswordField.addEventListener('input', function(e) {
+            validateNewPassword(e.target);
+            if (confirmPasswordField && confirmPasswordField.value) {
+                validatePasswordConfirmation(confirmPasswordField);
+            }
+        });
+
+        newPasswordField.addEventListener('blur', function(e) {
+            validateNewPassword(e.target);
+        });
+    }
+
+    if (confirmPasswordField) {
+        confirmPasswordField.addEventListener('input', function(e) {
+            validatePasswordConfirmation(e.target);
+        });
+
+        confirmPasswordField.addEventListener('blur', function(e) {
+            validatePasswordConfirmation(e.target);
+        });
+    }
+
+    function validateNewPassword(field) {
+        const value = field.value;
+        const errorSpan = field.parentNode.parentNode.querySelector('.text-danger');
+        let hasError = false;
+        let errorMessage = '';
+
+        if (value) {
+            // Check minimum length
+            if (value.length < 8) {
+                errorMessage = 'Password must be at least 8 characters long.';
+                hasError = true;
+            }
+            // Check for basic strength requirements
+            else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) {
+                errorMessage = 'Password must contain at least one lowercase letter, one uppercase letter, and one number.';
+                hasError = true;
+            }
+        }
+
+        if (errorSpan) {
+            errorSpan.textContent = errorMessage;
+        }
+
+        updateValidationIcon(field, !hasError && value.length > 0, hasError);
+        return !hasError;
+    }
+
+    function validatePasswordConfirmation(field) {
+        const value = field.value;
+        const newPassword = newPasswordField ? newPasswordField.value : '';
+        const errorSpan = field.parentNode.parentNode.querySelector('.text-danger');
+        let hasError = false;
+        let errorMessage = '';
+
+        if (value) {
+            if (value !== newPassword) {
+                errorMessage = 'Password confirmation does not match.';
+                hasError = true;
+            }
+        } else if (newPassword) {
+            errorMessage = 'Please confirm your new password.';
+            hasError = true;
+        }
+
+        if (errorSpan) {
+            errorSpan.textContent = errorMessage;
+        }
+
+        updateValidationIcon(field, !hasError && value.length > 0, hasError);
+        return !hasError;
     }
 
     // Real-time uniqueness validation with AJAX
@@ -203,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!value || value.trim() === '') {
             errorSpan.textContent = '';
-            fieldElement.classList.remove('error');
+            updateValidationIcon(fieldElement, false, false);
             return true;
         }
 
@@ -223,28 +343,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!result.isUnique) {
                     const fieldName = field === 'phonenumber' ? 'phone number' : field.toLowerCase();
                     errorSpan.textContent = `This ${fieldName} is already taken by another user.`;
-                    fieldElement.classList.add('error');
                     fieldElement.setAttribute('data-unique', 'false');
+                    updateValidationIcon(fieldElement, false, true);
                     return false;
                 } else {
                     errorSpan.textContent = '';
-                    fieldElement.classList.remove('error');
                     fieldElement.setAttribute('data-unique', 'true');
+                    updateValidationIcon(fieldElement, true, false);
                     return true;
                 }
             } else {
                 const fieldName = field === 'phonenumber' ? 'phone number' : field.toLowerCase();
                 errorSpan.textContent = `Error checking ${fieldName} availability.`;
-                fieldElement.classList.add('error');
                 fieldElement.setAttribute('data-unique', 'false');
+                updateValidationIcon(fieldElement, false, true);
                 return false;
             }
         } catch (error) {
             console.error('Uniqueness check error:', error);
             const fieldName = field === 'phonenumber' ? 'phone number' : field.toLowerCase();
             errorSpan.textContent = `Unable to verify ${fieldName} availability.`;
-            fieldElement.classList.add('error');
             fieldElement.setAttribute('data-unique', 'false');
+            updateValidationIcon(fieldElement, false, true);
             return false;
         }
     }
@@ -260,14 +380,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (value.length >= 3) {
                 errorSpan.textContent = 'Checking username...';
-                e.target.classList.remove('error');
+                updateValidationIcon(e.target, false, false);
 
                 usernameTimeout = setTimeout(() => {
                     checkUniqueness('username', value, e.target);
                 }, 800);
             } else {
                 errorSpan.textContent = '';
-                e.target.classList.remove('error');
+                updateValidationIcon(e.target, false, false);
             }
         });
     }
@@ -289,17 +409,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const isValidFormat = hasAt && hasDot && atIndex > 0 && dotIndex > atIndex && dotIndex < value.length - 1;
             if (value && isValidFormat) {
                 errorSpan.textContent = 'Checking email availability...';
-                e.target.classList.remove('error');
+                updateValidationIcon(e.target, false, false);
 
                 emailTimeout = setTimeout(() => {
                     checkUniqueness('email', value, e.target);
                 }, 800);
             } else if (value && !isValidFormat) {
                 errorSpan.textContent = 'Please enter a valid email address.';
-                e.target.classList.add('error');
+                updateValidationIcon(e.target, false, true);
             } else {
                 errorSpan.textContent = '';
-                e.target.classList.remove('error');
+                updateValidationIcon(e.target, false, false);
             }
         });
 
@@ -320,7 +440,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     checkUniqueness('email', value, e.target);
                 } else {
                     errorSpan.textContent = 'Please enter a valid email address.';
-                    e.target.classList.add('error');
+                    updateValidationIcon(e.target, false, true);
                 }
             }
         });
@@ -352,17 +472,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (cleanValue.length === 10) {
                 errorSpan.textContent = 'Checking phone number availability...';
-                e.target.classList.remove('error');
+                updateValidationIcon(e.target, false, false);
 
                 phoneTimeout = setTimeout(() => {
                     checkUniqueness('phonenumber', cleanValue, e.target);
                 }, 800);
             } else if (cleanValue.length > 0 && cleanValue.length < 10) {
                 errorSpan.textContent = 'Phone number must be exactly 10 digits.';
-                e.target.classList.add('error');
+                updateValidationIcon(e.target, false, true);
             } else {
                 errorSpan.textContent = '';
-                e.target.classList.remove('error');
+                updateValidationIcon(e.target, false, false);
             }
         });
 
@@ -376,7 +496,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 checkUniqueness('phonenumber', value, e.target);
             } else if (value.length > 0 && value.length !== 10) {
                 errorSpan.textContent = 'Phone number must be exactly 10 digits.';
-                e.target.classList.add('error');
+                updateValidationIcon(e.target, false, true);
             }
         });
     }
@@ -410,6 +530,34 @@ document.addEventListener('DOMContentLoaded', function() {
                         errorFields.push(fieldName);
                     }
                 });
+            }
+
+            // Check password validation
+            if (newPasswordField && newPasswordField.value) {
+                if (!validateNewPassword(newPasswordField)) {
+                    hasErrors = true;
+                    errorFields.push('NewPassword');
+                }
+            }
+
+            if (confirmPasswordField && confirmPasswordField.value) {
+                if (!validatePasswordConfirmation(confirmPasswordField)) {
+                    hasErrors = true;
+                    errorFields.push('ConfirmNewPassword');
+                }
+            }
+
+            // Check if new password is provided but confirmation is missing
+            if (newPasswordField && newPasswordField.value && (!confirmPasswordField || !confirmPasswordField.value)) {
+                hasErrors = true;
+                errorFields.push('ConfirmNewPassword');
+                if (confirmPasswordField) {
+                    const errorSpan = confirmPasswordField.parentNode.parentNode.querySelector('.text-danger');
+                    if (errorSpan) {
+                        errorSpan.textContent = 'Please confirm your new password.';
+                    }
+                    updateValidationIcon(confirmPasswordField, false, true);
+                }
             }
 
             // Check for uniqueness validation in progress or failed
@@ -446,9 +594,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const messageSpan = alertDiv.querySelector('.alert-message');
                 if (errorFields.length > 0) {
-                    messageSpan.textContent = `Please fix the following fields before saving: ${errorFields.join(', ')}`;
+                    const friendlyFieldNames = errorFields.map(field => {
+                        switch(field) {
+                            case 'NewPassword': return 'New Password';
+                            case 'ConfirmNewPassword': return 'Confirm New Password';
+                            case 'FirstName': return 'First Name';
+                            case 'LastName': return 'Last Name';
+                            case 'PhoneNumber': return 'Phone Number';
+                            case 'DateOfBirth': return 'Date of Birth';
+                            case 'StreetAddress': return 'Street Address';
+                            case 'ZipCode': return 'ZIP Code';
+                            default: return field;
+                        }
+                    });
+                    messageSpan.textContent = `Please fix the following fields before updating profile: ${friendlyFieldNames.join(', ')}`;
                 } else {
-                    messageSpan.textContent = 'Please fix all validation errors before saving.';
+                    messageSpan.textContent = 'Please fix all validation errors before updating profile.';
                 }
 
                 // Scroll to the top to show the error

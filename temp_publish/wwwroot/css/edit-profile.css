@@ -255,8 +255,12 @@ select.form-control {
 
 .error-message {
     background: rgba(244, 67, 54, 0.1);
-    color: #ffcdd2;
+    color: #ff5252 !important;
     border-left: 3px solid var(--error-color);
+}
+
+.error-message i {
+    color: #f44336 !important;
 }
 
 .success-message {

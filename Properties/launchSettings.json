@@ -9,13 +9,46 @@
     }
   },
   "profiles": {
-    "http": {
+    "Web App (Debug)": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "applicationUrl": "http://localhost:5026",
+      "applicationUrl": "http://localhost:5000",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "Web API (Debug)": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "api/UsersApi",
+      "applicationUrl": "http://localhost:8090",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "api"
+      }
+    },
+    "Combined Debug (Web + API)": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "applicationUrl": "http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DEBUG_MODE": "Combined",
+        "ApiBaseUrl": "http://localhost:8090/"
+      }
+    },
+    "Email Service Debug": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5500",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DEBUG_EMAIL_SERVICE": "true",
+        "NotificationService__CheckIntervalMinutes": "1",
+        "NotificationService__Enabled": "true"
       }
     },
     "https": {

@@ -24,25 +24,32 @@ namespace RegistrationPortal.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Pending Approval Notification Service started at: {Time}", DateTimeOffset.Now);
+            _logger.LogInformation("🚀 Pending Approval Notification Service started at: {Time}", DateTimeOffset.Now);
 
             // Get configuration values
             var checkIntervalMinutes = GetConfigValue("NotificationService:CheckIntervalMinutes", 60); // Check every hour by default
             var notificationThresholdHours = GetConfigValue("NotificationService:NotificationThresholdHours", 24); // Notify after 1 day by default
             var enabled = GetConfigValue("NotificationService:Enabled", true);
+            var debugMode = Environment.GetEnvironmentVariable("DEBUG_EMAIL_SERVICE") == "true";
 
             if (!enabled)
             {
-                _logger.LogInformation("Pending Approval Notification Service is disabled in configuration");
+                _logger.LogInformation("⚠️ Pending Approval Notification Service is disabled in configuration");
                 return;
             }
 
-            _logger.LogInformation("Service Configuration: Check Interval: {CheckInterval} minutes, Threshold: {Threshold} hours",
-                checkIntervalMinutes, notificationThresholdHours);
+            if (debugMode)
+            {
+                _logger.LogWarning("🐛 DEBUG MODE: Email Service running in debug mode with enhanced logging");
+                checkIntervalMinutes = Math.Max(1, checkIntervalMinutes); // Minimum 1 minute in debug mode
+            }
+
+            _logger.LogInformation("⚙️ Service Configuration: Check Interval: {CheckInterval} minutes, Threshold: {Threshold} hours, Debug: {DebugMode}",
+                checkIntervalMinutes, notificationThresholdHours, debugMode);
 
             // Create timer that runs every configured interval
             var interval = TimeSpan.FromMinutes(checkIntervalMinutes);
-            _timer = new Timer(async _ => await CheckPendingApprovals(notificationThresholdHours),
+            _timer = new Timer(async _ => await CheckPendingApprovals(notificationThresholdHours, debugMode),
                 null, TimeSpan.Zero, interval);
 
             // Keep the service running
@@ -52,10 +59,12 @@ namespace RegistrationPortal.Services
             }
         }
 
-        private async Task CheckPendingApprovals(int thresholdHours)
+        private async Task CheckPendingApprovals(int thresholdHours, bool debugMode = false)
         {
             try
             {
+                if (debugMode) _logger.LogWarning("🔍 DEBUG: Starting pending approvals check at {Time}", DateTime.Now);
+
                 using var scope = _serviceScopeFactory.CreateScope();
                 var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
                 var emailService = scope.ServiceProvider.GetRequiredService<IEmailNotificationService>();
@@ -66,9 +75,12 @@ namespace RegistrationPortal.Services
                 // Get all unapproved users
                 var unapprovedUsers = await userService.GetUnapprovedUsersAsync();
 
+                if (debugMode) _logger.LogWarning("🔍 DEBUG: Found {Count} unapproved users", unapprovedUsers?.Count() ?? 0);
+
                 if (unapprovedUsers?.Any() != true)
                 {
                     _logger.LogDebug("No pending approvals found");
+                    if (debugMode) _logger.LogWarning("🔍 DEBUG: No pending approvals - check completed");
                     return;
                 }
 
@@ -84,16 +96,16 @@ namespace RegistrationPortal.Services
                     _logger.LogInformation("Found {Count} users pending approval for more than {ThresholdHours} hours. Oldest: {OldestDate}",
                         overdueUsers.Count, thresholdHours, oldestUser.CreatedDate);
 
-                    // Check if we've already sent a notification recently for this oldest user
-                    var lastNotificationKey = $"LastNotification_{oldestUser.UserID}";
+                    // Check if we've already sent a notification recently (check global, not per user)
+                    var lastNotificationKey = "LastNotification_Global";
                     var lastNotificationTime = GetLastNotificationTime(lastNotificationKey);
-                    var notificationIntervalHours = GetConfigValue("NotificationService:NotificationIntervalHours", 24); // Don't spam - send max once per day
+                    var notificationIntervalHours = GetConfigValue("NotificationService:NotificationIntervalHours", 120); // Default to 5 days
 
                     if (lastNotificationTime.HasValue &&
                         DateTime.Now - lastNotificationTime.Value < TimeSpan.FromHours(notificationIntervalHours))
                     {
-                        _logger.LogDebug("Notification already sent recently for oldest pending user (ID: {UserId}). Skipping.",
-                            oldestUser.UserID);
+                        _logger.LogDebug("Notification already sent recently (last sent: {LastTime}). Skipping until {NextTime}.",
+                            lastNotificationTime.Value, lastNotificationTime.Value.AddHours(notificationIntervalHours));
                         return;
                     }
 
@@ -166,14 +178,32 @@ namespace RegistrationPortal.Services
         {
             try
             {
-                // In a real implementation, this would persist to a database or file
-                // For now, we'll just log it
-                _logger.LogDebug("Last notification time set for {Key}: {Time}", key, time);
+                // Write to appsettings.json to persist notification times
+                var configPath = Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json");
+                if (File.Exists(configPath))
+                {
+                    var json = File.ReadAllText(configPath);
+                    var config = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(json);
 
-                // You could implement persistence here, for example:
-                // - Save to a simple JSON file
-                // - Save to database
-                // - Use IMemoryCache with sliding expiration
+                    if (!config.ContainsKey("NotificationService"))
+                        config["NotificationService"] = new Dictionary<string, object>();
+
+                    var notificationService = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(config["NotificationService"].ToString());
+
+                    if (!notificationService.ContainsKey("LastNotifications"))
+                        notificationService["LastNotifications"] = new Dictionary<string, object>();
+
+                    var lastNotifications = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(notificationService["LastNotifications"].ToString());
+                    lastNotifications[key] = time.ToString("yyyy-MM-ddTHH:mm:ss");
+
+                    notificationService["LastNotifications"] = lastNotifications;
+                    config["NotificationService"] = notificationService;
+
+                    var updatedJson = System.Text.Json.JsonSerializer.Serialize(config, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                    File.WriteAllText(configPath, updatedJson);
+
+                    _logger.LogDebug("Saved last notification time for key: {Key} at {Time}", key, time);
+                }
             }
             catch (Exception ex)
             {

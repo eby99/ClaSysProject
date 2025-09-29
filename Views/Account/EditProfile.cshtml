@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 
     <!-- Local CSS -->
-    <link rel="stylesheet" href="~/css/edit-profile.css">
+    <link rel="stylesheet" href="~/css/edit-profile.css?v=@DateTime.Now.Ticks">
 </head>
 
 <body>
@@ -43,7 +43,7 @@
 
                 <!-- Error Message -->
                 <div id="error-message" class="alert alert-danger d-none">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <i class="fas fa-times me-2"></i>
                     <span id="error-text">Please fix the errors below.</span>
                 </div>
 
@@ -72,7 +72,9 @@
                                            placeholder="Enter your first name"
                                            maxlength="50" />
                                     <i class="fas fa-user input-icon"></i>
-                                    <div class="validation-message error-message"></div>
+                                    <div class="validation-message error-message">
+                                        <i class="fas fa-times text-danger"></i> <span class="error-text"></span>
+                                    </div>
                                     <div class="validation-message success-message">
                                         <i class="fas fa-check"></i> Looks good!
                                     </div>
@@ -90,7 +92,9 @@
                                            placeholder="Enter your last name"
                                            maxlength="50" />
                                     <i class="fas fa-user input-icon"></i>
-                                    <div class="validation-message error-message"></div>
+                                    <div class="validation-message error-message">
+                                        <i class="fas fa-times text-danger"></i> <span class="error-text"></span>
+                                    </div>
                                     <div class="validation-message success-message">
                                         <i class="fas fa-check"></i> Looks good!
                                     </div>
@@ -116,7 +120,9 @@
                                         <span class="validation-check d-none"><i class="fas fa-check text-success"></i></span>
                                         <span class="validation-cross d-none"><i class="fas fa-times text-danger"></i></span>
                                     </div>
-                                    <div class="validation-message error-message"></div>
+                                    <div class="validation-message error-message">
+                                        <i class="fas fa-times text-danger"></i> <span class="error-text"></span>
+                                    </div>
                                     <div class="validation-message success-message">
                                         <i class="fas fa-check"></i> Username is available!
                                     </div>
@@ -133,7 +139,9 @@
                                            required
                                            data-validation="age" />
                                     <i class="fas fa-calendar input-icon"></i>
-                                    <div class="validation-message error-message"></div>
+                                    <div class="validation-message error-message">
+                                        <i class="fas fa-times text-danger"></i> <span class="error-text"></span>
+                                    </div>
                                     <div class="validation-message success-message">
                                         <i class="fas fa-check"></i> Valid age!
                                     </div>
@@ -153,31 +161,6 @@
                                         <option value="PreferNot">Prefer not to say</option>
                                     </select>
                                     <i class="fas fa-venus-mars input-icon"></i>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="input-group-custom">
-                                    <label asp-for="Country" class="form-label">
-                                        Country <span class="required">*</span>
-                                    </label>
-                                    <select asp-for="Country" class="form-control" required>
-                                        <option value="">Select Country</option>
-                                        <option value="US">United States</option>
-                                        <option value="UK">United Kingdom</option>
-                                        <option value="CA">Canada</option>
-                                        <option value="AU">Australia</option>
-                                        <option value="IN">India</option>
-                                        <option value="DE">Germany</option>
-                                        <option value="FR">France</option>
-                                        <option value="JP">Japan</option>
-                                        <option value="BR">Brazil</option>
-                                        <option value="Other">Other</option>
-                                    </select>
-                                    <i class="fas fa-globe input-icon"></i>
-                                    <div class="validation-message error-message"></div>
-                                    <div class="validation-message success-message">
-                                        <i class="fas fa-check"></i> Country selected!
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -209,7 +192,9 @@
                                         <span class="validation-check d-none"><i class="fas fa-check text-success"></i></span>
                                         <span class="validation-cross d-none"><i class="fas fa-times text-danger"></i></span>
                                     </div>
-                                    <div class="validation-message error-message"></div>
+                                    <div class="validation-message error-message">
+                                        <i class="fas fa-times text-danger"></i> <span class="error-text"></span>
+                                    </div>
                                     <div class="validation-message success-message">
                                         <i class="fas fa-check"></i> Email is available!
                                     </div>
@@ -233,7 +218,9 @@
                                         <span class="validation-check d-none"><i class="fas fa-check text-success"></i></span>
                                         <span class="validation-cross d-none"><i class="fas fa-times text-danger"></i></span>
                                     </div>
-                                    <div class="validation-message error-message"></div>
+                                    <div class="validation-message error-message">
+                                        <i class="fas fa-times text-danger"></i> <span class="error-text"></span>
+                                    </div>
                                     <div class="validation-message success-message">
                                         <i class="fas fa-check"></i> Phone number is available!
                                     </div>
@@ -249,13 +236,44 @@
                             Address Information
                         </h3>
 
-                        <div class="input-group-custom">
-                            <label asp-for="StreetAddress" class="form-label">Street Address</label>
-                            <input asp-for="StreetAddress"
-                                   class="form-control"
-                                   placeholder="Enter your street address"
-                                   maxlength="200" />
-                            <i class="fas fa-home input-icon"></i>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="input-group-custom">
+                                    <label asp-for="Country" class="form-label">
+                                        Country <span class="required">*</span>
+                                    </label>
+                                    <select asp-for="Country" class="form-control" required>
+                                        <option value="">Select Country</option>
+                                        <option value="US">United States</option>
+                                        <option value="UK">United Kingdom</option>
+                                        <option value="CA">Canada</option>
+                                        <option value="AU">Australia</option>
+                                        <option value="IN">India</option>
+                                        <option value="DE">Germany</option>
+                                        <option value="FR">France</option>
+                                        <option value="JP">Japan</option>
+                                        <option value="BR">Brazil</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                    <i class="fas fa-globe input-icon"></i>
+                                    <div class="validation-message error-message">
+                                        <i class="fas fa-times text-danger"></i> <span class="error-text"></span>
+                                    </div>
+                                    <div class="validation-message success-message">
+                                        <i class="fas fa-check"></i> Country selected!
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group-custom">
+                                    <label asp-for="StreetAddress" class="form-label">Street Address</label>
+                                    <input asp-for="StreetAddress"
+                                           class="form-control"
+                                           placeholder="Enter your street address"
+                                           maxlength="200" />
+                                    <i class="fas fa-home input-icon"></i>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="row">
@@ -290,7 +308,9 @@
                                            placeholder="Enter 6-digit ZIP code"
                                            maxlength="6" />
                                     <i class="fas fa-mail-bulk input-icon"></i>
-                                    <div class="validation-message error-message"></div>
+                                    <div class="validation-message error-message">
+                                        <i class="fas fa-times text-danger"></i> <span class="error-text"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -385,7 +405,9 @@
                                             <span>At least one special character</span>
                                         </div>
                                     </div>
-                                    <div class="validation-message error-message"></div>
+                                    <div class="validation-message error-message">
+                                        <i class="fas fa-times text-danger"></i> <span class="error-text"></span>
+                                    </div>
                                     <div class="validation-message success-message">
                                         <i class="fas fa-check"></i> Strong password!
                                     </div>
@@ -406,7 +428,9 @@
                                             <i class="fas fa-eye" id="toggleIcon_ConfirmNewPassword"></i>
                                         </button>
                                     </div>
-                                    <div class="validation-message error-message"></div>
+                                    <div class="validation-message error-message">
+                                        <i class="fas fa-times text-danger"></i> <span class="error-text"></span>
+                                    </div>
                                     <div class="validation-message success-message">
                                         <i class="fas fa-check"></i> Passwords match!
                                     </div>
@@ -467,7 +491,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Local JavaScript -->
-    <script src="~/js/edit-profile.js"></script>
+    <script src="~/js/edit-profile.js?v=@DateTime.Now.Ticks"></script>
 
     <style>
         .input-container {
@@ -478,16 +502,27 @@
             padding-right: 5rem; /* More space for both icons */
         }
 
+        /* All field icons use consistent centering */
         .input-container .input-icon {
-            position: absolute;
-            right: 3.5rem; /* Position lock icon further left */
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-secondary);
-            font-size: 1rem;
-            z-index: 2;
-            pointer-events: none;
+            left: 1rem !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            z-index: 2 !important;
+            position: absolute !important;
+            pointer-events: none !important;
         }
+
+        /* Fix dropdown icon alignment */
+        select.form-control {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 3rem !important;
+        }
+
+        /* Remove select dropdown override - use base CSS rule */
+
 
         .password-toggle {
             position: absolute;
@@ -583,3 +618,4 @@
     }
 </body>
 </html>
+

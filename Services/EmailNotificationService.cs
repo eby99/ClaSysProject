@@ -57,7 +57,7 @@ namespace RegistrationPortal.Services
         <p>Please log in to the admin dashboard to review and approve pending user registrations.</p>
 
         <div style='text-align: center; margin: 20px 0;'>
-            <a href='http://localhost:8081/Admin'
+            <a href='http://registrationportal.local/Admin'
                style='display: inline-block; background: linear-gradient(45deg, #28a745, #20c997);
                       color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;
                       font-weight: bold;'>

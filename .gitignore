@@ -509,3 +509,29 @@ appsettings.api.json
 
 # Project specific - Perfect CSS backup
 perfect_inline_css.txt
+
+# Project specific - Temporary publish folders
+temp_publish/
+temp_api_publish/
+temp_api/
+temp_webapp/
+temp_runtime_fix/
+IIS_Deployment_Full/
+final_production/
+runtime_fix/
+
+# Project specific - Debugging and development files
+DEBUGGING-GUIDE.md
+
+# Project specific - Status and completion files
+FINAL-AUTOMATION-STATUS.md
+HOW-TO-RECALL-CLAUDE-STATE.md
+IIS-DEPLOYMENT-COMPLETE-GUIDE.md
+
+# Project specific - Batch scripts and automation
+*.bat
+StartAPI-*.bat
+StartPortal.bat
+
+# Project specific - Web config files (keep template only)
+web.config

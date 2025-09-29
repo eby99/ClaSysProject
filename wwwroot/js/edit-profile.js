@@ -33,6 +33,18 @@ $(document).ready(function() {
         $(this).data('touched', true);
     });
 
+    // Clear validation icons when field loses focus (but keep validation messages)
+    $('input, select, textarea').on('blur', function() {
+        const $field = $(this);
+        const $container = $field.closest('.input-group-custom');
+        const $inlineValidation = $container.find('.inline-validation');
+
+        // Hide inline validation icons on blur for cleaner UI
+        setTimeout(function() {
+            $inlineValidation.find('.validation-spinner, .validation-check, .validation-cross').addClass('d-none');
+        }, 500); // Small delay to allow validation to complete first
+    });
+
     // Field validation handlers
     $('input, select, textarea').on('blur change paste keyup', function() {
         const $field = $(this);
@@ -138,6 +150,10 @@ $(document).ready(function() {
         $errorMsg.removeClass('show').hide();
         $successMsg.removeClass('show').hide();
 
+        // Clear all inline validation icons
+        const $inlineValidation = $container.find('.inline-validation');
+        $inlineValidation.find('.validation-spinner, .validation-check, .validation-cross').addClass('d-none');
+
         // Required field validation
         if (isRequired && !value && $field.data('touched')) {
             isValid = false;
@@ -166,46 +182,24 @@ $(document).ready(function() {
                     }
                     break;
                 case 'email':
-                    // Very strict email validation
-                    const emailRegex = /^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?@[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.[a-zA-Z]{2,4}$/;
+                    // Simple but effective email validation
+                    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                    const validDomains = ['com', 'org', 'net', 'edu', 'gov', 'mil', 'int', 'co', 'uk', 'de', 'fr', 'jp', 'au', 'ca', 'in', 'io', 'dev'];
 
-                    // Additional validation rules
-                    const hasValidLength = value.length >= 5 && value.length <= 254;
-                    const hasValidDomain = value.includes('@') && value.split('@').length === 2;
-                    const domainPart = value.includes('@') ? value.split('@')[1] : '';
-                    const domainParts = domainPart.split('.');
-                    const hasValidDomainExtension = domainPart.includes('.') &&
-                                                   domainParts.length >= 2 &&
-                                                   domainParts[domainParts.length - 1].length >= 2 &&
-                                                   domainParts[domainParts.length - 1].length <= 4;
-
-                    // Check for invalid patterns like multiple consecutive dots or ending with invalid characters
-                    const hasInvalidPatterns = value.includes('..') ||
-                                              value.endsWith('.') ||
-                                              value.includes('@.') ||
-                                              /[^a-zA-Z0-9._@-]/.test(value) ||
-                                              domainPart.startsWith('.') ||
-                                              domainPart.endsWith('.');
-
-                    const emailValid = emailRegex.test(value) &&
-                                      hasValidLength &&
-                                      hasValidDomain &&
-                                      hasValidDomainExtension &&
-                                      !hasInvalidPatterns;
-
-                    if (!emailValid) {
+                    if (!emailPattern.test(value)) {
                         isValid = false;
-                        if (!hasValidDomain) {
-                            errorMessage = 'Email must contain exactly one @ symbol';
-                        } else if (!hasValidDomainExtension) {
-                            errorMessage = 'Email must have a valid domain extension (2-4 letters)';
-                        } else if (hasInvalidPatterns) {
-                            errorMessage = 'Email contains invalid characters or patterns';
-                        } else {
-                            errorMessage = 'Please enter a valid email address (e.g., user@domain.com)';
-                        }
+                        errorMessage = 'Please enter a valid email address';
                     } else {
-                        checkUniqueness('email', value, $field, currentUserId);
+                        // Check domain extension
+                        const domainPart = value.split('@')[1];
+                        const extension = domainPart.split('.').pop().toLowerCase();
+
+                        if (!validDomains.includes(extension)) {
+                            isValid = false;
+                            errorMessage = 'Please use a valid email domain (e.g., .com, .org, .net)';
+                        } else {
+                            checkUniqueness('email', value, $field, currentUserId);
+                        }
                     }
                     break;
                 case 'phone':
@@ -238,6 +232,11 @@ $(document).ready(function() {
                     }
                     break;
                 case 'password':
+                    // Check if password is same as current
+                    if (value) {
+                        checkForSamePassword(value, $field);
+                    }
+
                     const passwordResult = validatePasswordStrength(value);
                     isValid = passwordResult.isValid;
                     if (!isValid) {
@@ -264,14 +263,26 @@ $(document).ready(function() {
         // Update validation status
         validationStatus[fieldId] = isValid;
 
-        // Show validation result ONLY if field has been touched and has validation errors or success
+        // Show validation result ONLY if field has been touched
         if ($field.data('touched')) {
             if (!isValid && errorMessage) {
-                $container.addClass('field-error');
-                $errorMsg.text(errorMessage).addClass('show').show();
+                $container.addClass('field-error').removeClass('field-valid');
+                $successMsg.removeClass('show').hide();
+                $errorMsg.find('.error-text').text(errorMessage);
+                $errorMsg.addClass('show').show();
+
+                // Show cross icon for error
+                $inlineValidation.find('.validation-cross').removeClass('d-none');
+                $inlineValidation.find('.validation-check').addClass('d-none');
+
             } else if (isValid && value && !['username', 'email', 'phone'].includes(validationType)) {
-                $container.addClass('field-valid');
+                $container.addClass('field-valid').removeClass('field-error');
+                $errorMsg.removeClass('show').hide();
                 $successMsg.addClass('show').show();
+
+                // Show check icon for success
+                $inlineValidation.find('.validation-check').removeClass('d-none');
+                $inlineValidation.find('.validation-cross').addClass('d-none');
             }
         }
 
@@ -377,15 +388,20 @@ $(document).ready(function() {
         // Only show validation results if field has been touched
         if ($field.data('touched')) {
             if (isUnique) {
-                $container.addClass('field-valid');
+                $container.addClass('field-valid').removeClass('field-error');
+                $errorMsg.removeClass('show').hide();
                 $successMsg.addClass('show').show();
                 $inlineValidation.find('.validation-check').removeClass('d-none');
+                $inlineValidation.find('.validation-cross').addClass('d-none');
                 validationStatus[fieldId] = true;
                 console.log('Showing success check for:', fieldId);
             } else {
-                $container.addClass('field-error');
-                $errorMsg.text(`This ${type} is already taken by another user`).addClass('show').show();
+                $container.addClass('field-error').removeClass('field-valid');
+                $successMsg.removeClass('show').hide();
+                $errorMsg.find('.error-text').text('This ' + type + ' is already taken by another user');
+                $errorMsg.addClass('show').show();
                 $inlineValidation.find('.validation-cross').removeClass('d-none');
+                $inlineValidation.find('.validation-check').addClass('d-none');
                 validationStatus[fieldId] = false;
                 console.log('Showing error cross for:', fieldId);
             }
@@ -442,14 +458,27 @@ $(document).ready(function() {
             }
         }
 
+        // Check password confirmation if new password is provided
+        const newPassword = $('#NewPassword').val();
+        const confirmPassword = $('#ConfirmNewPassword').val();
+        if (newPassword && newPassword !== confirmPassword) {
+            allRequiredValid = false;
+        }
+
         console.log('All required fields valid:', allRequiredValid);
 
         $submitBtn.prop('disabled', !allRequiredValid);
 
         if (allRequiredValid) {
             $submitBtn.removeClass('btn-secondary').addClass('btn-primary');
+            $('#error-message').addClass('d-none');
         } else {
             $submitBtn.removeClass('btn-primary').addClass('btn-secondary');
+            // Show what's wrong when button is disabled
+            if (!allRequiredValid) {
+                $('#error-message').removeClass('d-none');
+                $('#error-text').text('Please complete all required fields correctly before submitting.');
+            }
         }
     }
 
@@ -572,6 +601,50 @@ function showModelErrors(errorMessages) {
 function showSuccess(message) {
     $('#success-message').removeClass('d-none').find('#success-text').text(message || 'Profile updated successfully!');
     $('#success-message')[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function checkForSamePassword(newPassword, $field) {
+    if (!newPassword || newPassword.length === 0) {
+        return;
+    }
+
+    const $container = $field.closest('.input-group-custom');
+    const currentUserId = $('#UserID').val();
+
+    // Make AJAX call to check if password is same as current
+    $.ajax({
+        url: '/Account/CheckSamePassword',
+        type: 'GET',
+        data: {
+            userId: currentUserId,
+            newPassword: newPassword
+        },
+        success: function(response) {
+            if (response.isSamePassword) {
+                // Show inline warning message
+                showSamePasswordWarning($container);
+            }
+        },
+        error: function() {
+            // Silently fail - don't block user
+        }
+    });
+}
+
+function showSamePasswordWarning($container) {
+    // Create and show inline warning
+    let $warning = $container.find('.same-password-warning');
+    if ($warning.length === 0) {
+        $warning = $('<div class="same-password-warning" style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 4px; color: #856404; font-size: 0.85rem;"><i class="fas fa-info-circle me-1"></i>You are using the same password. Consider using a new password for better security.</div>');
+        $container.append($warning);
+    }
+
+    $warning.show();
+
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        $warning.fadeOut();
+    }, 5000);
 }
 
 function validatePasswordStrength(password) {

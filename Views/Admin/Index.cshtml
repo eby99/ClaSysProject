@@ -125,7 +125,10 @@
                     <div class="welcome-text">
                         <i class="fas fa-user-shield"></i> Welcome, @ViewBag.AdminUsername
                     </div>
-                    <div style="display: flex; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <a href="@Url.Action("NotificationSettings", "Admin")" class="home-btn" style="background: rgba(245, 158, 11, 0.25); color: #FCD34D; border-color: rgba(245, 158, 11, 0.6);">
+                            <i class="fas fa-bell"></i> Notifications
+                        </a>
                         <a href="/" class="home-btn">
                             <i class="fas fa-home"></i> Home
                         </a>

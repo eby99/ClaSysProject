@@ -3,7 +3,14 @@ let resetToken = null;
 
 function showMessage(message, type) {
     const messageDiv = $('#messageDiv');
-    messageDiv.removeClass('success error').addClass(type).text(message).fadeIn();
+    messageDiv.removeClass('success error').addClass(type).text(message).show().fadeIn();
+
+    // Auto-hide error messages after 3 seconds
+    if (type === 'error') {
+        setTimeout(() => {
+            messageDiv.fadeOut();
+        }, 3000);
+    }
 }
 
 function goToStep(stepNumber) {

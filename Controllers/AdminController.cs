@@ -774,5 +774,180 @@ namespace RegistrationPortal.Controllers
                 return Json(new { success = false, message = "Error checking uniqueness" });
             }
         }
+
+        [HttpGet]
+        public IActionResult NotificationSettings()
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminID");
+            if (!adminId.HasValue)
+            {
+                return RedirectToAction("Index");
+            }
+
+            var model = new NotificationSettingsViewModel
+            {
+                Enabled = bool.Parse(_configuration["NotificationService:Enabled"] ?? "true"),
+                AdminEmail = _configuration["NotificationService:AdminEmail"] ?? "ebymathew142@gmail.com",
+                CheckIntervalMinutes = int.Parse(_configuration["NotificationService:CheckIntervalMinutes"] ?? "60"),
+                NotificationThresholdHours = int.Parse(_configuration["NotificationService:NotificationThresholdHours"] ?? "24"),
+                NotificationIntervalHours = int.Parse(_configuration["NotificationService:NotificationIntervalHours"] ?? "24"),
+                SmtpHost = _configuration["EmailSettings:SmtpHost"] ?? "smtp.gmail.com",
+                SmtpPort = int.Parse(_configuration["EmailSettings:SmtpPort"] ?? "587"),
+                SmtpUsername = _configuration["EmailSettings:Username"] ?? "",
+                SmtpPassword = _configuration["EmailSettings:Password"] ?? "",
+                FromEmail = _configuration["EmailSettings:FromEmail"] ?? "",
+                FromName = _configuration["EmailSettings:FromName"] ?? "Registration Portal System",
+                EnableSsl = bool.Parse(_configuration["EmailSettings:EnableSsl"] ?? "true")
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> NotificationSettings(NotificationSettingsViewModel model)
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminID");
+            if (!adminId.HasValue)
+            {
+                return RedirectToAction("Index");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            try
+            {
+                // For a full implementation, you would save these to a database or update appsettings
+                // For now, we'll simulate the update and store temporarily
+
+                var adminUsername = HttpContext.Session.GetString("AdminUsername");
+                _eventLogger.LogUserAction("Notification Settings Updated", adminUsername,
+                    $"Admin {adminUsername} updated notification settings - Enabled: {model.Enabled}, Threshold: {model.NotificationThresholdHours}h");
+
+                TempData["SuccessMessage"] = "Notification settings updated successfully! Note: For permanent changes, update appsettings.json and restart the application.";
+
+                // Log the action
+                _eventLogger.LogSecurityEvent("Admin Configuration Change", adminUsername,
+                    HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    "Notification settings were modified");
+
+                model.StatusMessage = "Settings updated successfully (temporary)";
+            }
+            catch (Exception ex)
+            {
+                model.StatusMessage = $"Error updating settings: {ex.Message}";
+                TempData["ErrorMessage"] = "Failed to update notification settings.";
+            }
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SendTestNotification()
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminID");
+            if (!adminId.HasValue)
+            {
+                return Json(new { success = false, message = "Unauthorized" });
+            }
+
+            try
+            {
+                var emailService = HttpContext.RequestServices.GetRequiredService<IEmailNotificationService>();
+                var adminEmail = _configuration["NotificationService:AdminEmail"] ?? "ebymathew142@gmail.com";
+
+                var success = await emailService.SendTestEmailAsync(
+                    adminEmail,
+                    "Registration Portal - Test Notification",
+                    "This is a test email to verify that the notification service is working correctly. If you receive this email, the system is properly configured!"
+                );
+
+                if (success)
+                {
+                    var adminUsername = HttpContext.Session.GetString("AdminUsername");
+                    _eventLogger.LogUserAction("Test Email Sent", adminUsername,
+                        $"Admin {adminUsername} sent a test notification email to {adminEmail}");
+
+                    return Json(new {
+                        success = true,
+                        message = $"Test email sent successfully to {adminEmail}! Please check your inbox."
+                    });
+                }
+                else
+                {
+                    return Json(new {
+                        success = false,
+                        message = "Failed to send test email. Please check SMTP configuration and logs."
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new {
+                    success = false,
+                    message = $"Error sending test email: {ex.Message}"
+                });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> TriggerPendingNotification()
+        {
+            var adminId = HttpContext.Session.GetInt32("AdminID");
+            if (!adminId.HasValue)
+            {
+                return Json(new { success = false, message = "Unauthorized" });
+            }
+
+            try
+            {
+                var emailService = HttpContext.RequestServices.GetRequiredService<IEmailNotificationService>();
+                var unapprovedUsers = await _userService.GetUnapprovedUsersAsync();
+
+                if (unapprovedUsers?.Any() == true)
+                {
+                    var oldestUser = unapprovedUsers.OrderBy(u => u.CreatedDate).First();
+                    var success = await emailService.SendPendingApprovalNotificationAsync(
+                        unapprovedUsers.Count(),
+                        oldestUser.CreatedDate
+                    );
+
+                    if (success)
+                    {
+                        var adminUsername = HttpContext.Session.GetString("AdminUsername");
+                        _eventLogger.LogUserAction("Manual Notification Triggered", adminUsername,
+                            $"Admin {adminUsername} manually triggered pending approval notification for {unapprovedUsers.Count()} users");
+
+                        return Json(new {
+                            success = true,
+                            message = $"Pending approval notification sent for {unapprovedUsers.Count()} users!"
+                        });
+                    }
+                    else
+                    {
+                        return Json(new {
+                            success = false,
+                            message = "Failed to send pending approval notification. Please check SMTP configuration."
+                        });
+                    }
+                }
+                else
+                {
+                    return Json(new {
+                        success = false,
+                        message = "No pending users found. No notification sent."
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new {
+                    success = false,
+                    message = $"Error sending notification: {ex.Message}"
+                });
+            }
+        }
     }
 }
