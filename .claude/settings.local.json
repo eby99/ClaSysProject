@@ -35,7 +35,16 @@
       "Bash(\"C:/Windows/system32/inetsrv/appcmd.exe\" add app /site.name:\"ClaysyProject\" /path:\"/api\" /physicalPath:\"C:/inetpub/wwwroot/ClaysyProject/api\")",
       "Bash('/c/Windows/system32/inetsrv/appcmd.exe' add app /site.name:ClaysyProject '/path:/api' '/physicalPath:C:\\inetpub\\wwwroot\\ClaysyProject\\api')",
       "Bash(dotnet build:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(dotnet restore:*)",
+      "Bash(rm:*)",
+      "Bash(dotnet run:*)",
+      "Bash(powershell:*)",
+      "Bash(cmd /c:*)",
+      "Bash(start http://registrationportal.local/)",
+      "Bash(start notepad:*)",
+      "Read(//c/inetpub/wwwroot/RegistrationPortal/**)",
+      "Bash(echo File copied successfully!)"
     ],
     "deny": [],
     "ask": []

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - Registration Portal</title>
+    <link href="~/css/external/font-awesome.min.css" rel="stylesheet">
+    <link href="~/css/fonts/inter-spacegrotesk.css" rel="stylesheet">
+    <link href="~/css/home.css" rel="stylesheet">
+</head>
+<body>
+
+    <div class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div id="three-container"></div>
+    <div class="floating-particles" id="particles"></div>
+
+    <div class="landing-overlay">
+        @if (TempData["LogoutMessage"] != null)
+        {
+            <div style="position: absolute; top: 2rem; left: 50%; transform: translateX(-50%); z-index: 1000; background: rgba(40, 167, 69, 0.9); color: white; padding: 1rem 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); backdrop-filter: blur(10px); font-weight: 500; font-size: 0.95rem; text-align: center; min-width: 300px;">
+                <i class="fas fa-check-circle" style="margin-right: 0.5rem;"></i>
+                @TempData["LogoutMessage"]
+            </div>
+        }
+
+        <div class="hero-content">
+            <h1 class="hero-title">Welcome to ClasySys</h1>
+            <p class="hero-subtitle">Your Gateway to Secure Registration & Intelligent Management</p>
+
+
+            <div class="button-container">
+                <a asp-controller="Account" asp-action="Register" class="hero-button btn-secondary-hero">
+                    <i class="fas fa-user-plus"></i>
+                    Create Account
+                </a>
+                <a asp-controller="Account" asp-action="Login" class="hero-button btn-primary-hero">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Sign In
+                </a>
+            </div>
+
+        </div>
+        
+        <div class="scroll-indicator"></div>
+        
+        <div class="features-preview">
+            <p>Secure • Fast • Modern • Reliable • Intelligent</p>
+        </div>
+    </div>
+
+    <script src="~/js/three.min.js"></script>
+    <script src="~/js/home.js"></script>
+</body>
+</html>

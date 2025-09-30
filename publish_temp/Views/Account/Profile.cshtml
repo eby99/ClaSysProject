@@ -1,0 +1,376 @@
+@model RegistrationPortal.ViewModels.UserProfileViewModel
+@{
+    ViewData["Title"] = "Profile";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - ClasySys Profile</title>
+    <link href="~/css/external/bootstrap.min.css" rel="stylesheet">
+    <link href="~/css/external/font-awesome.min.css" rel="stylesheet">
+    <link href="~/css/fonts/inter-spacegrotesk.css" rel="stylesheet">
+    <link href="~/css/external/animate.min.css" rel="stylesheet">
+    <link href="~/css/profile.css" rel="stylesheet">
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+        <div class="profile-container animate__animated animate__fadeIn">
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h1 class="profile-name">@Model.FullName</h1>
+                <p class="profile-username">@@@Model.Username</p>
+
+                <div class="action-buttons">
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-home"></i> Home
+                    </a>
+                    <a href="@Url.Action("EditProfile", "Account")" class="btn btn-secondary">
+                        <i class="fas fa-edit"></i> Edit Profile
+                    </a>
+                    <form asp-action="Logout" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-logout">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Login Success Message -->
+            @if (ViewBag.LoginSuccess != null)
+            {
+                <div class="profile-content">
+                    <div class="alert animate__animated animate__bounceIn">
+                        <i class="fas fa-check-circle"></i>
+                        Welcome back! You have successfully logged in.
+                    </div>
+                </div>
+            }
+
+            <!-- Profile Update Success Message -->
+            @if (TempData["ProfileUpdateSuccess"] != null)
+            {
+                <div class="profile-content">
+                    <div class="alert animate__animated animate__bounceIn">
+                        <i class="fas fa-check-circle"></i>
+                        @TempData["ProfileUpdateSuccess"]
+                    </div>
+                </div>
+            }
+
+            <!-- Profile Content -->
+            <div class="profile-content">
+                <div class="content-grid">
+                    <div class="row g-4">
+                        <!-- Personal Information -->
+                        <div class="col-12 col-lg-6">
+                            <div class="info-card animate__animated animate__fadeInUp h-100">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <div class="card-icon personal">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                Personal Information
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-row">
+                                <div class="info-label">Full Name</div>
+                                <div class="info-value">@Model.FullName</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Date of Birth</div>
+                                <div class="info-value">@Model.DateOfBirth.ToString("MMMM d, yyyy")</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Age</div>
+                                <div class="info-value">@Model.Age years old</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Gender</div>
+                                <div class="info-value">
+                                    @if (!string.IsNullOrEmpty(Model.Gender))
+                                    {
+                                        @GetGenderDisplayText(Model.Gender)
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Not specified</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Country</div>
+                                <div class="info-value">
+                                    @if (!string.IsNullOrEmpty(Model.Country))
+                                    {
+                                        @GetCountryDisplayText(Model.Country)
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Not specified</span>
+                                    }
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <div class="col-12 col-lg-6">
+                        <div class="info-card animate__animated animate__fadeInUp h-100" style="animation-delay: 0.1s;">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <div class="card-icon contact">
+                                    <i class="fas fa-address-book"></i>
+                                </div>
+                                Contact Information
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-row">
+                                <div class="info-label">Email</div>
+                                <div class="info-value">@Model.Email</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Phone</div>
+                                <div class="info-value">
+                                    @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                                    {
+                                        @FormatPhoneNumber(Model.PhoneNumber)
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Not provided</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Address</div>
+                                <div class="info-value">
+                                    @if (!string.IsNullOrEmpty(Model.StreetAddress))
+                                    {
+                                        @Model.StreetAddress
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Not provided</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">City, State</div>
+                                <div class="info-value">
+                                    @{
+                                        var cityState = "";
+                                        if (!string.IsNullOrEmpty(Model.City) && !string.IsNullOrEmpty(Model.State))
+                                            cityState = $"{Model.City}, {Model.State}";
+                                        else if (!string.IsNullOrEmpty(Model.City))
+                                            cityState = Model.City;
+                                        else if (!string.IsNullOrEmpty(Model.State))
+                                            cityState = Model.State;
+                                    }
+                                    @if (!string.IsNullOrEmpty(cityState))
+                                    {
+                                        @cityState
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Not provided</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">ZIP Code</div>
+                                <div class="info-value">
+                                    @if (!string.IsNullOrEmpty(Model.ZipCode))
+                                    {
+                                        @Model.ZipCode
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Not provided</span>
+                                    }
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Information -->
+                    <div class="col-12 col-lg-6">
+                        <div class="info-card animate__animated animate__fadeInUp h-100" style="animation-delay: 0.2s;">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <div class="card-icon account">
+                                    <i class="fas fa-cog"></i>
+                                </div>
+                                Account Information
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-row">
+                                <div class="info-label">Member Since</div>
+                                <div class="info-value">
+                                    @Model.CreatedDate.ToString("MMMM d, yyyy")
+                                    <br><small class="text-muted">(@Model.DaysSinceMember days ago)</small>
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Last Updated</div>
+                                <div class="info-value">@Model.LastModified.ToString("MMMM d, yyyy")</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Account Status</div>
+                                <div class="info-value">
+                                    @if (Model.IsActive)
+                                    {
+                                        <span class="badge badge-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-warning">Inactive</span>
+                                    }
+                                </div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.ReferralCode))
+                            {
+                                <div class="info-row">
+                                    <div class="info-label">Referral Code</div>
+                                    <div class="info-value">@Model.ReferralCode</div>
+                                </div>
+                            }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Communication Preferences -->
+                    <div class="col-12 col-lg-6">
+                        <div class="info-card animate__animated animate__fadeInUp h-100" style="animation-delay: 0.3s;">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <div class="card-icon preferences">
+                                    <i class="fas fa-bell"></i>
+                                </div>
+                                Preferences
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-row">
+                                <div class="info-label">Newsletter</div>
+                                <div class="info-value">
+                                    @if (Model.ReceiveNewsletter)
+                                    {
+                                        <span class="badge badge-success">Subscribed</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-secondary">Not subscribed</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">SMS Alerts</div>
+                                <div class="info-value">
+                                    @if (Model.ReceiveSMS)
+                                    {
+                                        <span class="badge badge-success">Enabled</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-secondary">Disabled</span>
+                                    }
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bio Section -->
+                    <div class="col-12">
+                        <div class="bio-section animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
+                        <div class="card-title" style="margin-bottom: 1.5rem;">
+                            <div class="card-icon personal">
+                                <i class="fas fa-user-edit"></i>
+                            </div>
+                            About Me
+                        </div>
+                        <div class="bio-content">
+                            @if (!string.IsNullOrEmpty(Model.Bio))
+                            {
+                                <p>@Model.Bio</p>
+                            }
+                            else
+                            {
+                                <p class="text-muted">No bio provided yet. Share something about yourself!</p>
+                            }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/js/jquery-3.6.0.min.js"></script>
+    <script src="~/js/profile.js"></script>
+</body>
+</html>
+
+@functions {
+    string GetGenderDisplayText(string genderValue)
+    {
+        return genderValue switch
+        {
+            "Male" => "Male",
+            "Female" => "Female",
+            "Other" => "Other",
+            "PreferNot" => "Prefer not to say",
+            _ => "Not specified"
+        };
+    }
+
+    string GetCountryDisplayText(string countryValue)
+    {
+        return countryValue switch
+        {
+            "US" => "United States",
+            "UK" => "United Kingdom",
+            "CA" => "Canada",
+            "AU" => "Australia",
+            "IN" => "India",
+            "DE" => "Germany",
+            "FR" => "France",
+            "JP" => "Japan",
+            "BR" => "Brazil",
+            "Other" => "Other",
+            _ => countryValue
+        };
+    }
+
+    string FormatPhoneNumber(string phoneNumber)
+    {
+        if (string.IsNullOrEmpty(phoneNumber))
+            return "Not provided";
+
+        // Remove all non-numeric characters
+        string numbers = System.Text.RegularExpressions.Regex.Replace(phoneNumber, @"[^\d]", "");
+
+        if (numbers.Length == 10)
+        {
+            return $"({numbers.Substring(0, 3)}) {numbers.Substring(3, 3)}-{numbers.Substring(6, 4)}";
+        }
+
+        return phoneNumber; // Return as-is if not 10 digits
+    }
+}

@@ -78,6 +78,9 @@ namespace RegistrationPortal.ViewModels
         public string Password { get; set; } = string.Empty;
 
         public bool RememberMe { get; set; }
+
+        // CAPTCHA property
+        public string? CaptchaResponse { get; set; }
     }
 
     public class AdminLoginViewModel

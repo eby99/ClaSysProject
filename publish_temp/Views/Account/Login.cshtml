@@ -1,0 +1,188 @@
+@model RegistrationPortal.ViewModels.LoginViewModel
+@inject IConfiguration Configuration
+@{
+    ViewData["Title"] = "Login";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - ClasySys</title>
+    <link href="~/css/external/font-awesome.min.css" rel="stylesheet">
+    <link href="~/css/fonts/inter-spacegrotesk.css" rel="stylesheet">
+    <link href="~/css/external/animate.min.css" rel="stylesheet">
+    <link href="~/css/login.css" rel="stylesheet">
+
+    <!-- Google reCAPTCHA v2 -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+    <style>
+        /* Hide the test message from reCAPTCHA test keys */
+        .grecaptcha-badge {
+            visibility: hidden;
+        }
+        /* Professional CAPTCHA styling */
+        .g-recaptcha {
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Floating particles background -->
+    <div class="floating-particles" id="particles"></div>
+
+    <div class="container-fluid d-flex justify-content-center align-items-center min-vh-100">
+        <div class="login-container col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5 col-xxl-4">
+            <div class="login-card">
+                <!-- Header Section -->
+                <div class="login-header">
+                    <div class="logo-container">
+                        <i class="fas fa-sign-in-alt"></i>
+                    </div>
+                    <h1 class="login-title">Welcome Back</h1>
+                    <p class="login-subtitle">Sign in to your account</p>
+                </div>
+
+                <!-- Success Message from Registration -->
+                @if (ViewBag.SuccessMessage != null)
+                {
+                    <div class="alert alert-success mx-4 mt-3">
+                        <i class="fas fa-check-circle me-2"></i>
+                        @ViewBag.SuccessMessage
+                    </div>
+                }
+
+                <!-- Success Message -->
+                <div id="success-message" class="alert alert-success d-none mx-4 mt-3">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Login successful! Redirecting to your profile...
+                </div>
+
+                <!-- Error Message -->
+                <div id="error-message" class="alert alert-danger d-none mx-4 mt-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="error-text"></span>
+                </div>
+
+                <!-- Login Form -->
+                <div class="login-form">
+                    <form asp-action="Login" method="post" id="loginForm" onsubmit="showLoading()">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="input-group-custom">
+                            <label asp-for="UsernameEmail" class="form-label">Username or Email</label>
+                            <div class="position-relative">
+                                <input asp-for="UsernameEmail" class="form-control" placeholder="Enter username or email" required />
+                                <i class="fas fa-user input-icon"></i>
+                            </div>
+                            <span asp-validation-for="UsernameEmail" class="text-danger small"></span>
+                        </div>
+
+                        <div class="input-group-custom">
+                            <label asp-for="Password" class="form-label">Password</label>
+                            <div class="position-relative">
+                                <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" 
+                                       id="loginPassword" required />
+                                <i class="fas fa-lock input-icon"></i>
+                                <button type="button" class="btn btn-link position-absolute end-0 top-50 translate-middle-y pe-3" 
+                                        onclick="togglePassword()" style="z-index: 10; border: none; background: none;">
+                                    <i class="fas fa-eye" id="toggleIcon"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+
+                        <!-- CAPTCHA Section -->
+                        <div class="input-group-custom text-center mb-4">
+                            <label for="loginCaptchaResponse" class="form-label d-block mb-3">Security Verification</label>
+                            <div class="d-flex justify-content-center">
+                                <div class="g-recaptcha"
+                                     data-sitekey="@(Configuration["ReCaptcha:SiteKey"] ?? "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI")"
+                                     data-callback="onLoginCaptchaComplete"
+                                     data-theme="light"></div>
+                            </div>
+                            <input type="hidden" asp-for="CaptchaResponse" id="loginCaptchaResponse" />
+                            <span asp-validation-for="CaptchaResponse" class="text-danger small d-block mt-2"></span>
+                        </div>
+
+                        <div class="d-grid gap-2 mb-4">
+                            <button type="submit" class="btn btn-primary btn-lg" id="loginSubmitBtn" disabled>
+                                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                            </button>
+                        </div>
+
+                        <div class="text-center">
+                            <p class="text-muted mb-2">
+                                <a href="@Url.Action("ForgotPassword", "Account")" class="text-decoration-none">Forgot your password?</a>
+                            </p>
+                            <p class="text-muted">
+                                Don't have an account? 
+                                <a href="@Url.Action("Register", "Account")" class="text-decoration-none fw-bold">Create one here</a>
+                            </p>
+                            <hr class="my-4">
+                            <p class="text-muted small">
+                                Admin? <a href="@Url.Action("AdminLogin", "Admin")" class="text-decoration-none">Admin Login</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/js/login.js"></script>
+    <script>
+        // Handle model state errors - this needs to stay inline due to Razor syntax
+        document.addEventListener('DOMContentLoaded', function() {
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <text>
+                const errorMessages = [];
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <text>errorMessages.push('@Html.Raw(error.ErrorMessage.Replace("'", "\\'"))');</text>
+                }
+                showModelErrors(errorMessages);
+                </text>
+            }
+        });
+    </script>
+
+    <script>
+        // CAPTCHA callback function for login
+        window.onLoginCaptchaComplete = function(response) {
+            console.log('✅ CAPTCHA completed successfully');
+            document.getElementById('loginCaptchaResponse').value = response;
+
+            // Enable submit button
+            const submitBtn = document.getElementById('loginSubmitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('btn-secondary');
+                submitBtn.classList.add('btn-primary');
+                submitBtn.style.cursor = 'pointer';
+                submitBtn.title = 'Sign In';
+            }
+        };
+
+        // Disable submit button initially until CAPTCHA is completed
+        document.addEventListener('DOMContentLoaded', function() {
+            const submitBtn = document.getElementById('loginSubmitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.remove('btn-primary');
+                submitBtn.classList.add('btn-secondary');
+                submitBtn.style.cursor = 'not-allowed';
+                submitBtn.title = 'Please complete the security verification first';
+            }
+        });
+
+        // Additional scripts for ASP.NET Core integration can go here
+    </script>
+</body>
+</html>

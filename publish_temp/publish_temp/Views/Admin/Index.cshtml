@@ -1,0 +1,524 @@
+@model dynamic
+@using System.Linq
+@{
+    ViewData["Title"] = "Admin Panel";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - ClasySys Admin</title>
+    <link href="~/css/external/bootstrap.min.css" rel="stylesheet">
+    <link href="~/css/external/font-awesome.min.css" rel="stylesheet">
+    <link href="~/css/fonts/inter-spacegrotesk.css" rel="stylesheet">
+    <link href="~/css/external/animate.min.css" rel="stylesheet">
+    <link href="~/css/admin-index.css" rel="stylesheet">
+    <style>
+        .status-active {
+            background: rgba(16, 185, 129, 0.25) !important;
+            color: #34D399 !important;
+            border: 1px solid rgba(16, 185, 129, 0.4) !important;
+            font-weight: 700 !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7) !important;
+        }
+
+        .status-inactive {
+            background: rgba(255, 107, 107, 0.25) !important;
+            color: #FCA5A5 !important;
+            border: 1px solid rgba(255, 107, 107, 0.4) !important;
+            font-weight: 700 !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7) !important;
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.35) !important;
+            color: #FCD34D !important;
+            border: 1px solid rgba(245, 158, 11, 0.6) !important;
+            font-weight: 700 !important;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="admin-card">
+            @if (ViewBag.ShowLogin == true)
+            {
+                <!-- Admin Login Form -->
+                <div class="admin-header">
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
+                        <a href="/" class="home-btn">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </div>
+                    <h1><i class="fas fa-shield-alt"></i> Admin Login</h1>
+                    <p>Secure access to admin panel</p>
+                </div>
+
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        @TempData["ErrorMessage"]
+                    </div>
+                }
+
+                <div class="login-form">
+                    <form asp-action="Login" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="form-group">
+                            <label class="form-label">Admin Username</label>
+                            <input name="Username" class="form-control" placeholder="Enter admin username" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Admin Password</label>
+                            <input name="Password" type="password" class="form-control" placeholder="Enter admin password" required />
+                        </div>
+
+                        @if (!ViewData.ModelState.IsValid)
+                        {
+                            <div class="alert alert-error">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <span>@error.ErrorMessage</span><br />
+                                }
+                            </div>
+                        }
+
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Login to Admin Panel
+                        </button>
+                    </form>
+                </div>
+            }
+            else if (ViewBag.ShowDashboard == true)
+            {
+                <!-- Admin Dashboard -->
+                <div class="admin-header">
+                    <h1><i class="fas fa-users-cog"></i> Admin Dashboard</h1>
+                    <p>Manage users and system settings</p>
+                </div>
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        @TempData["SuccessMessage"]
+                    </div>
+                }
+
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        @TempData["ErrorMessage"]
+                    </div>
+                }
+
+                <div class="welcome-section">
+                    <div class="welcome-text">
+                        <i class="fas fa-user-shield"></i> Welcome, @ViewBag.AdminUsername
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <a href="@Url.Action("NotificationSettings", "Admin")" class="home-btn" style="background: rgba(245, 158, 11, 0.25); color: #FCD34D; border-color: rgba(245, 158, 11, 0.6);">
+                            <i class="fas fa-bell"></i> Notifications
+                        </a>
+                        <a href="/" class="home-btn">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                        <form asp-action="Logout" method="post" style="display: inline;">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="logout-btn">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                @if (Model?.Stats != null)
+                {
+                    <div class="stats-grid">
+                        <div class="row g-3">
+                            <div class="col-6 col-lg-2">
+                                <div class="stat-card h-100">
+                                    <i class="fas fa-users"></i>
+                                    <h3>@(Model?.Stats?.TotalUsers ?? 0)</h3>
+                                    <p>Total Users</p>
+                                </div>
+                            </div>
+                            <div class="col-6 col-lg-2">
+                                <div class="stat-card h-100">
+                                    <i class="fas fa-user-check"></i>
+                                    <h3>@(Model?.Stats?.ActiveUsers ?? 0)</h3>
+                                    <p>Active Users</p>
+                                </div>
+                            </div>
+                            <div class="col-6 col-lg-2">
+                                <div class="stat-card h-100">
+                                    <i class="fas fa-user-times"></i>
+                                    <h3>@((Model?.Stats?.TotalUsers ?? 0) - (Model?.Stats?.ActiveUsers ?? 0))</h3>
+                                    <p>Inactive Users</p>
+                                </div>
+                            </div>
+                            <div class="col-6 col-lg-2">
+                                <div class="stat-card h-100">
+                                    <i class="fas fa-user-clock text-warning"></i>
+                                    <h3>@(Model?.Stats?.PendingApproval ?? 0)</h3>
+                                    <p>Pending Approval</p>
+                                </div>
+                            </div>
+                            <div class="col-6 col-lg-2">
+                                <div class="stat-card h-100">
+                                    <i class="fas fa-user-plus text-success"></i>
+                                    <h3>@(Model?.Stats?.RecentUsers ?? 0)</h3>
+                                    <p>New This Week</p>
+                                </div>
+                            </div>
+                            <div class="col-6 col-lg-2">
+                                <div class="stat-card h-100">
+                                    <i class="fas fa-envelope"></i>
+                                    <h3>@(Model?.Stats?.NewsletterSubscribers ?? 0)</h3>
+                                    <p>Newsletter Subs</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div class="users-section" id="users-section">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+                        <h2 class="section-title mb-0"><i class="fas fa-list"></i> User Management</h2>
+                        <div class="filter-buttons d-flex flex-wrap gap-2">
+                            <a href="@Url.Action("Index", new { filter = "active" })#users-section"
+                               class="filter-btn @(ViewBag.CurrentFilter == "active" || ViewBag.CurrentFilter == null ? "active" : "")">
+                                <i class="fas fa-check-circle"></i> Active Users
+                            </a>
+                            <a href="@Url.Action("Index", new { filter = "inactive" })#users-section"
+                               class="filter-btn @(ViewBag.CurrentFilter == "inactive" ? "active" : "")">
+                                <i class="fas fa-times-circle"></i> Inactive Users
+                            </a>
+                            <a href="@Url.Action("Index", new { filter = "all" })#users-section"
+                               class="filter-btn @(ViewBag.CurrentFilter == "all" ? "active" : "")">
+                                <i class="fas fa-users"></i> All Users
+                            </a>
+                            <a href="@Url.Action("Index", new { filter = "pending" })#users-section"
+                               class="filter-btn filter-btn-pending @(ViewBag.CurrentFilter == "pending" ? "active" : "")">
+                                <i class="fas fa-clock"></i> Pending Approval
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Search and Filter Controls -->
+                    <div class="search-filter-section mb-4">
+                        <form method="get" action="@Url.Action("Index")#users-section" class="row g-3">
+                            <input type="hidden" name="filter" value="@ViewBag.CurrentFilter" />
+
+                            <!-- Username Search -->
+                            <div class="col-md-4">
+                                <label class="form-label text-white-75">
+                                    <i class="fas fa-search"></i> Search Username
+                                </label>
+                                <input type="text" name="search" class="form-control search-input"
+                                       placeholder="Enter username to search..."
+                                       value="@ViewBag.SearchTerm">
+                            </div>
+
+                            <!-- Date From -->
+                            <div class="col-md-3">
+                                <label class="form-label text-white-75">
+                                    <i class="fas fa-calendar-alt"></i> From Date
+                                </label>
+                                <input type="date" name="fromDate" class="form-control date-input"
+                                       value="@ViewBag.FromDate">
+                            </div>
+
+                            <!-- Date To -->
+                            <div class="col-md-2">
+                                <label class="form-label text-white-75">
+                                    <i class="fas fa-calendar-alt"></i> To Date
+                                </label>
+                                <input type="date" name="toDate" class="form-control date-input"
+                                       value="@ViewBag.ToDate">
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="col-md-3">
+                                <div class="d-flex gap-2 w-100" style="margin-top: 2.1rem; margin-left: 1rem;">
+                                    <button type="submit" class="btn btn-search">
+                                        <i class="fas fa-search"></i> Apply
+                                    </button>
+                                    <a href="@Url.Action("Index", new { filter = ViewBag.CurrentFilter })#users-section" class="btn btn-clear">
+                                        <i class="fas fa-times"></i> Clear
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    @if (Model?.Users?.Count > 0)
+                    {
+                        <div class="users-table">
+                            <div class="table-responsive">
+                                <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th class="sortable" data-sort="id">
+                                            <a href="@Url.Action("Index", new {
+                                                filter = ViewBag.CurrentFilter,
+                                                search = ViewBag.SearchTerm,
+                                                fromDate = ViewBag.FromDate,
+                                                toDate = ViewBag.ToDate,
+                                                sortBy = "id",
+                                                sortOrder = (ViewBag.SortBy == "id" && ViewBag.SortOrder == "asc") ? "desc" : "asc"
+                                            })#users-section" class="sort-header">
+                                                ID
+                                                @if (ViewBag.SortBy == "id")
+                                                {
+                                                    <i class="fas fa-sort-@(ViewBag.SortOrder == "asc" ? "up" : "down")"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-sort"></i>
+                                                }
+                                            </a>
+                                        </th>
+                                        <th class="sortable" data-sort="name">
+                                            <a href="@Url.Action("Index", new {
+                                                filter = ViewBag.CurrentFilter,
+                                                search = ViewBag.SearchTerm,
+                                                fromDate = ViewBag.FromDate,
+                                                toDate = ViewBag.ToDate,
+                                                sortBy = "name",
+                                                sortOrder = (ViewBag.SortBy == "name" && ViewBag.SortOrder == "asc") ? "desc" : "asc"
+                                            })#users-section" class="sort-header">
+                                                Name
+                                                @if (ViewBag.SortBy == "name")
+                                                {
+                                                    <i class="fas fa-sort-@(ViewBag.SortOrder == "asc" ? "up" : "down")"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-sort"></i>
+                                                }
+                                            </a>
+                                        </th>
+                                        <th class="sortable" data-sort="username">
+                                            <a href="@Url.Action("Index", new {
+                                                filter = ViewBag.CurrentFilter,
+                                                search = ViewBag.SearchTerm,
+                                                fromDate = ViewBag.FromDate,
+                                                toDate = ViewBag.ToDate,
+                                                sortBy = "username",
+                                                sortOrder = (ViewBag.SortBy == "username" && ViewBag.SortOrder == "asc") ? "desc" : "asc"
+                                            })#users-section" class="sort-header">
+                                                Username
+                                                @if (ViewBag.SortBy == "username")
+                                                {
+                                                    <i class="fas fa-sort-@(ViewBag.SortOrder == "asc" ? "up" : "down")"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-sort"></i>
+                                                }
+                                            </a>
+                                        </th>
+                                        <th>Email</th>
+                                        <th class="sortable" data-sort="country">
+                                            <a href="@Url.Action("Index", new {
+                                                filter = ViewBag.CurrentFilter,
+                                                search = ViewBag.SearchTerm,
+                                                fromDate = ViewBag.FromDate,
+                                                toDate = ViewBag.ToDate,
+                                                sortBy = "country",
+                                                sortOrder = (ViewBag.SortBy == "country" && ViewBag.SortOrder == "asc") ? "desc" : "asc"
+                                            })#users-section" class="sort-header">
+                                                Country
+                                                @if (ViewBag.SortBy == "country")
+                                                {
+                                                    <i class="fas fa-sort-@(ViewBag.SortOrder == "asc" ? "up" : "down")"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-sort"></i>
+                                                }
+                                            </a>
+                                        </th>
+                                        <th class="sortable" data-sort="status">
+                                            <a href="@Url.Action("Index", new {
+                                                filter = ViewBag.CurrentFilter,
+                                                search = ViewBag.SearchTerm,
+                                                fromDate = ViewBag.FromDate,
+                                                toDate = ViewBag.ToDate,
+                                                sortBy = "status",
+                                                sortOrder = (ViewBag.SortBy == "status" && ViewBag.SortOrder == "asc") ? "desc" : "asc"
+                                            })#users-section" class="sort-header">
+                                                Status
+                                                @if (ViewBag.SortBy == "status")
+                                                {
+                                                    <i class="fas fa-sort-@(ViewBag.SortOrder == "asc" ? "up" : "down")"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-sort"></i>
+                                                }
+                                            </a>
+                                        </th>
+                                        <th>Approval</th>
+                                        <th class="sortable" data-sort="joined">
+                                            <a href="@Url.Action("Index", new {
+                                                filter = ViewBag.CurrentFilter,
+                                                search = ViewBag.SearchTerm,
+                                                fromDate = ViewBag.FromDate,
+                                                toDate = ViewBag.ToDate,
+                                                sortBy = "joined",
+                                                sortOrder = (ViewBag.SortBy == "joined" && ViewBag.SortOrder == "asc") ? "desc" : "asc"
+                                            })#users-section" class="sort-header">
+                                                Joined
+                                                @if (ViewBag.SortBy == "joined")
+                                                {
+                                                    <i class="fas fa-sort-@(ViewBag.SortOrder == "asc" ? "up" : "down")"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-sort"></i>
+                                                }
+                                            </a>
+                                        </th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var user in Model?.Users ?? Enumerable.Empty<RegistrationPortal.ViewModels.UserListItemViewModel>())
+                                    {
+                                        <tr>
+                                            <td>@user.UserID</td>
+                                            <td>@user.FirstName @user.LastName</td>
+                                            <td>@user.Username</td>
+                                            <td>@user.Email</td>
+                                            <td>@user.Country</td>
+                                            <td>
+                                                @if (user.IsActive)
+                                                {
+                                                    <span class="status-badge status-active">Active</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="status-badge status-inactive">Inactive</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (user.IsApproved)
+                                                {
+                                                    <span class="status-badge status-active">Approved</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="status-badge status-pending">Pending</span>
+                                                }
+                                            </td>
+                                            <td>@user.CreatedDate.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    @if (!user.IsApproved)
+                                                    {
+                                                        <!-- Pending approval users: only show approve/reject buttons -->
+                                                        <form asp-action="ApproveUser" method="post" style="display: inline;" id="approveForm_@user.UserID">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@user.UserID" />
+                                                            <button type="button" class="btn btn-approve" onclick="showApprovalModal(@user.UserID, '@user.Username', 'approve')">
+                                                                <i class="fas fa-check"></i> Approve
+                                                            </button>
+                                                        </form>
+                                                        <form asp-action="RejectUser" method="post" style="display: inline;" id="rejectForm_@user.UserID">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@user.UserID" />
+                                                            <button type="button" class="btn btn-reject" onclick="showApprovalModal(@user.UserID, '@user.Username', 'reject')">
+                                                                <i class="fas fa-times"></i> Reject
+                                                            </button>
+                                                        </form>
+                                                    }
+                                                    else
+                                                    {
+                                                        <!-- Approved users: show edit, activate/deactivate, delete buttons -->
+                                                        <a href="@Url.Action("EditUser", new { id = user.UserID })" class="btn btn-edit">
+                                                            <i class="fas fa-edit"></i> Edit
+                                                        </a>
+                                                        <form asp-action="ToggleUserStatus" method="post"
+                                                              id="toggleForm_@user.UserID" style="display: inline;">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@user.UserID" />
+                                                            <input type="hidden" name="filter" value="@ViewBag.CurrentFilter" />
+                                                            <button type="submit" class="btn btn-toggle"
+                                                                    onclick="return showToggleModal(@user.UserID, '@user.Username', @(user.IsActive.ToString().ToLower()))">
+                                                                <i class="fas fa-toggle-@(user.IsActive ? "off" : "on")"></i>
+                                                                @(user.IsActive ? "Deactivate" : "Activate")
+                                                            </button>
+                                                        </form>
+                                                        <form asp-action="DeleteUser" method="post" style="display: inline;" id="deleteForm_@user.UserID">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@user.UserID" />
+                                                            <button type="button" class="btn btn-delete" onclick="showDeleteModal(@user.UserID, '@user.Username')">
+                                                                <i class="fas fa-trash"></i> Delete
+                                                            </button>
+                                                        </form>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                            <i class="fas fa-users" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <p>No users found in the system.</p>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Confirm Action</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="modal-icon">
+                    <i id="modalIcon" class="fas fa-question-circle"></i>
+                </div>
+                <p id="modalMessage">Are you sure you want to perform this action?</p>
+                <div class="user-info">
+                    <strong>User:</strong> <span id="modalUsername"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-primary" id="confirmButton" onclick="confirmToggle()">
+                    <i class="fas fa-check"></i> Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/js/jquery-3.6.0.min.js"></script>
+    <script src="~/js/admin-index.js"></script>
+</body>
+</html>
+
+cd "E:\ClasySys\ClasysProj\RegPortalNEW\RegistrationPortal".\Deploy-IIS.ps1 -CreateAppPools -CreateSites

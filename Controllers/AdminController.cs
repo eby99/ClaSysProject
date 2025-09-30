@@ -596,7 +596,7 @@ namespace RegistrationPortal.Controllers
                 if (_configuration.GetValue<bool>("UseApiMode", false))
                 {
                     using var httpClient = new HttpClient();
-                    var apiBaseUrl = _configuration.GetValue<string>("ApiBaseUrl", "http://localhost:8080").TrimEnd('/');
+                    var apiBaseUrl = (_configuration.GetValue<string>("ApiBaseUrl") ?? "http://localhost:8080").TrimEnd('/');
 
                     var response = await httpClient.PostAsync($"{apiBaseUrl}/api/UsersApi/{id}/approve", null);
 
@@ -679,7 +679,7 @@ namespace RegistrationPortal.Controllers
                     var username = user?.Username ?? "Unknown";
 
                     using var httpClient = new HttpClient();
-                    var apiBaseUrl = _configuration.GetValue<string>("ApiBaseUrl", "http://localhost:8080").TrimEnd('/');
+                    var apiBaseUrl = (_configuration.GetValue<string>("ApiBaseUrl") ?? "http://localhost:8080").TrimEnd('/');
 
                     var response = await httpClient.PostAsync($"{apiBaseUrl}/api/UsersApi/{id}/reject", null);
 
@@ -804,7 +804,7 @@ namespace RegistrationPortal.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> NotificationSettings(NotificationSettingsViewModel model)
+        public IActionResult NotificationSettings(NotificationSettingsViewModel model)
         {
             var adminId = HttpContext.Session.GetInt32("AdminID");
             if (!adminId.HasValue)

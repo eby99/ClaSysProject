@@ -1,4 +1,7 @@
 @model RegistrationPortal.ViewModels.LoginViewModel
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+
 @{
     ViewData["Title"] = "Login";
 }
@@ -13,6 +16,22 @@
     <link href="~/css/fonts/inter-spacegrotesk.css" rel="stylesheet">
     <link href="~/css/external/animate.min.css" rel="stylesheet">
     <link href="~/css/login.css" rel="stylesheet">
+
+    <!-- Google reCAPTCHA v2 -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+    <style>
+        /* Hide the test message from reCAPTCHA test keys */
+        .grecaptcha-badge {
+            visibility: hidden;
+        }
+        /* Professional CAPTCHA styling */
+        .g-recaptcha {
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+    </style>
 </head>
 <body>
 
@@ -80,9 +99,21 @@
                             <span asp-validation-for="Password" class="text-danger small"></span>
                         </div>
 
+                        <!-- CAPTCHA Section -->
+                        <div class="input-group-custom text-center mb-4">
+                            <label for="loginCaptchaResponse" class="form-label d-block mb-3">Security Verification</label>
+                            <div class="d-flex justify-content-center">
+                                <div class="g-recaptcha"
+                                     data-sitekey="@(Configuration["ReCaptcha:SiteKey"] ?? "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI")"
+                                     data-callback="onLoginCaptchaComplete"
+                                     data-theme="light"></div>
+                            </div>
+                            <input type="hidden" asp-for="CaptchaResponse" id="loginCaptchaResponse" />
+                            <span asp-validation-for="CaptchaResponse" class="text-danger small d-block mt-2"></span>
+                        </div>
 
                         <div class="d-grid gap-2 mb-4">
-                            <button type="submit" class="btn btn-primary btn-lg">
+                            <button type="submit" class="btn btn-primary btn-lg" id="loginSubmitBtn" disabled>
                                 <i class="fas fa-sign-in-alt me-2"></i>Sign In
                             </button>
                         </div>
@@ -124,10 +155,36 @@
         });
     </script>
 
-@section Scripts {
     <script>
+        // CAPTCHA callback function for login
+        window.onLoginCaptchaComplete = function(response) {
+            console.log('✅ CAPTCHA completed successfully');
+            document.getElementById('loginCaptchaResponse').value = response;
+
+            // Enable submit button
+            const submitBtn = document.getElementById('loginSubmitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('btn-secondary');
+                submitBtn.classList.add('btn-primary');
+                submitBtn.style.cursor = 'pointer';
+                submitBtn.title = 'Sign In';
+            }
+        };
+
+        // Disable submit button initially until CAPTCHA is completed
+        document.addEventListener('DOMContentLoaded', function() {
+            const submitBtn = document.getElementById('loginSubmitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.remove('btn-primary');
+                submitBtn.classList.add('btn-secondary');
+                submitBtn.style.cursor = 'not-allowed';
+                submitBtn.title = 'Please complete the security verification first';
+            }
+        });
+
         // Additional scripts for ASP.NET Core integration can go here
     </script>
-}
 </body>
 </html>

@@ -1,0 +1,869 @@
+@model NotificationSettingsViewModel
+@{
+    ViewData["Title"] = "Notification Settings";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - ClasySys Admin</title>
+    <link href="~/css/external/bootstrap.min.css" rel="stylesheet">
+    <link href="~/css/external/font-awesome.min.css" rel="stylesheet">
+    <link href="~/css/fonts/inter-spacegrotesk.css" rel="stylesheet">
+    <link href="~/css/external/animate.min.css" rel="stylesheet">
+    <link href="~/css/admin-index.css" rel="stylesheet">
+    <style>
+        /* Professional modern layout with perfect spacing */
+        .container {
+            max-width: 1600px;
+            padding: 1rem;
+        }
+
+        .admin-card {
+            padding: 1.5rem;
+            margin-bottom: 0;
+            min-height: calc(100vh - 2rem);
+        }
+
+        .admin-header {
+            margin-bottom: 1.25rem;
+        }
+
+        .admin-header h1 {
+            font-size: 1.75rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .admin-header p {
+            margin-bottom: 0;
+            font-size: 0.9rem;
+        }
+
+        /* Perfect grid layout with aligned heights */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            align-items: stretch;
+        }
+
+        .settings-form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .settings-section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .section-title {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: var(--text-primary);
+            padding: 0.6rem 0.8rem;
+            width: 100%;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.4);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Custom checkbox styling */
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.6rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-wrapper:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .checkbox-input {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-input:checked {
+            background: var(--success-color);
+            border-color: var(--success-color);
+        }
+
+        .checkbox-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.9rem;
+        }
+
+        /* Enhanced button styling with proper sizing for desktop */
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            justify-content: center;
+            flex-wrap: nowrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            /* Desktop sizing - larger buttons */
+            min-width: 150px;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            color: white;
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: white;
+            border: 1px solid rgba(107, 114, 128, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Perfect height matched info panel - aligned with left containers */
+        .info-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 1.25rem;
+            backdrop-filter: blur(10px);
+            /* Perfect parallel alignment - start at same position as General Settings */
+            margin-top: 0;
+            display: flex;
+            flex-direction: column;
+            /* Stretch to match settings form height exactly */
+            height: 100%;
+        }
+
+        /* Align info-panel content perfectly with settings sections */
+        .info-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            flex: 1;
+        }
+
+        .info-section {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 1.25rem;
+            backdrop-filter: blur(5px);
+            flex: 1;
+        }
+
+        /* Last info section should expand to fill remaining space */
+        .info-section:last-child {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-section h3 {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-section p, .info-section li {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.4;
+            margin-bottom: 0.4rem;
+        }
+
+        .info-section ul, .info-section ol {
+            padding-left: 1rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .form-text {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
+            margin-top: 0.2rem;
+        }
+
+        .alert {
+            padding: 0.8rem;
+            border-radius: 6px;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #34D399;
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #FCA5A5;
+        }
+
+        .alert-info {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            color: #93C5FD;
+        }
+
+        /* Status indicator positioned at bottom of last section */
+        .status-indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.6rem;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 6px;
+            color: #34D399;
+            font-weight: 500;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+        }
+
+        .home-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .home-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+
+        /* Enhanced responsive design */
+        @@media (max-width: 1400px) {
+            .main-content {
+                grid-template-columns: 1fr 380px;
+            }
+        }
+
+        @@media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .info-panel {
+                order: -1;
+                height: auto;
+            }
+
+            .info-content {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .info-section {
+                flex: 1;
+                min-width: 280px;
+            }
+        }
+
+        @@media (max-width: 992px) {
+            .button-group {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .btn {
+                flex: 1;
+                min-width: 140px;
+                max-width: 200px;
+                padding: 0.7rem 1.2rem;
+                font-size: 0.85rem;
+            }
+
+            .info-content {
+                flex-direction: column;
+            }
+
+            .info-section {
+                min-width: auto;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .container {
+                padding: 0.5rem;
+            }
+
+            .admin-card {
+                padding: 1rem;
+                min-height: calc(100vh - 1rem);
+            }
+
+            .admin-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                width: 100%;
+                min-width: auto;
+                max-width: none;
+                padding: 0.8rem 1rem;
+            }
+
+            .main-content {
+                gap: 0.75rem;
+            }
+        }
+
+        @@media (max-width: 600px) {
+            .admin-header .d-flex {
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .home-btn {
+                align-self: center;
+                margin: 0 auto;
+                display: block;
+                width: fit-content;
+            }
+
+            .admin-header h1 {
+                font-size: 1.4rem;
+                margin-bottom: 0.25rem;
+                order: 1;
+            }
+
+            .admin-header p {
+                font-size: 0.85rem;
+                margin-bottom: 0;
+                order: 2;
+            }
+
+            .admin-header > div:first-child {
+                text-align: center;
+                width: 100%;
+                order: 1;
+            }
+
+            .admin-header .home-btn {
+                order: 3;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .admin-header .d-flex {
+                gap: 0.75rem;
+            }
+
+            .admin-header h1 {
+                font-size: 1.3rem;
+                line-height: 1.2;
+            }
+
+            .home-btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+                align-self: center;
+            }
+        }
+
+        /* Fix for Bootstrap row spacing */
+        .row {
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        .col, .col-md-6 {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+
+        /* Ensure equal height containers */
+        .settings-form,
+        .info-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .settings-form form {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .settings-sections-wrapper {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="admin-card">
+            <!-- Header Section -->
+            <div class="admin-header">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <div>
+                        <h1><i class="fas fa-bell"></i> Notification Settings</h1>
+                        <p>Configure email notifications for pending user approvals</p>
+                    </div>
+                    <a href="@Url.Action("Index", "Admin")" class="home-btn">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Alert Messages -->
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.StatusMessage))
+            {
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> @Model.StatusMessage
+                </div>
+            }
+
+            <div class="main-content">
+                <!-- Settings Form -->
+                <div class="settings-form">
+                    <form asp-action="NotificationSettings" method="post" id="notificationForm">
+                        <div asp-validation-summary="All" class="text-danger"></div>
+
+                        <div class="settings-sections-wrapper">
+                            <!-- General Settings -->
+                            <div class="settings-section">
+                                <h2 class="section-title"><i class="fas fa-toggle-on"></i> General Settings</h2>
+
+                                <div class="form-group">
+                                    <div class="checkbox-wrapper">
+                                        <input class="checkbox-input" type="checkbox" asp-for="Enabled" id="enabledSwitch">
+                                        <label class="checkbox-label" for="enabledSwitch">
+                                            <i class="fas fa-bell"></i> Enable Notifications
+                                        </label>
+                                    </div>
+                                    <small class="form-text">Turn on/off the notification service</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="AdminEmail" class="form-label">
+                                        <i class="fas fa-envelope"></i> Admin Email Address
+                                    </label>
+                                    <input asp-for="AdminEmail" class="form-control" placeholder="admin@example.com">
+                                    <span asp-validation-for="AdminEmail" class="text-danger"></span>
+                                    <small class="form-text">Email address to receive notifications</small>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="CheckIntervalMinutes" class="form-label">
+                                                <i class="fas fa-clock"></i> Check Interval (Minutes)
+                                            </label>
+                                            <input asp-for="CheckIntervalMinutes" class="form-control" type="number" min="15" max="1440">
+                                            <span asp-validation-for="CheckIntervalMinutes" class="text-danger"></span>
+                                            <small class="form-text">15-1440 minutes</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="NotificationThresholdHours" class="form-label">
+                                                <i class="fas fa-hourglass-half"></i> Threshold (Hours)
+                                            </label>
+                                            <input asp-for="NotificationThresholdHours" class="form-control" type="number" min="1" max="168">
+                                            <span asp-validation-for="NotificationThresholdHours" class="text-danger"></span>
+                                            <small class="form-text">1-168 hours</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="form-group">
+                                    <label asp-for="NotificationIntervalHours" class="form-label">
+                                        <i class="fas fa-calendar-alt"></i> Notification Interval (Hours)
+                                    </label>
+                                    <input asp-for="NotificationIntervalHours" class="form-control" type="number" min="1" max="72">
+                                    <span asp-validation-for="NotificationIntervalHours" class="text-danger"></span>
+                                    <small class="form-text">Minimum time between notifications (1-72 hours)</small>
+                                </div>
+                            </div>
+
+                            <!-- Email Settings -->
+                            <div class="settings-section">
+                                <h2 class="section-title"><i class="fas fa-mail-bulk"></i> Email Configuration</h2>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="SmtpHost" class="form-label">
+                                                <i class="fas fa-server"></i> SMTP Host
+                                            </label>
+                                            <input asp-for="SmtpHost" class="form-control" placeholder="smtp.gmail.com">
+                                            <span asp-validation-for="SmtpHost" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="SmtpPort" class="form-label">
+                                                <i class="fas fa-plug"></i> SMTP Port
+                                            </label>
+                                            <input asp-for="SmtpPort" class="form-control" type="number" min="1" max="65535">
+                                            <span asp-validation-for="SmtpPort" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="SmtpUsername" class="form-label">
+                                                <i class="fas fa-user"></i> SMTP Username
+                                            </label>
+                                            <input asp-for="SmtpUsername" class="form-control" placeholder="your.email@gmail.com">
+                                            <span asp-validation-for="SmtpUsername" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="SmtpPassword" class="form-label">
+                                                <i class="fas fa-key"></i> SMTP Password
+                                            </label>
+                                            <input asp-for="SmtpPassword" class="form-control" type="password" placeholder="App password">
+                                            <span asp-validation-for="SmtpPassword" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="FromEmail" class="form-label">
+                                                <i class="fas fa-at"></i> From Email
+                                            </label>
+                                            <input asp-for="FromEmail" class="form-control" placeholder="Leave blank to use SMTP username">
+                                            <span asp-validation-for="FromEmail" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label asp-for="FromName" class="form-label">
+                                                <i class="fas fa-signature"></i> From Name
+                                            </label>
+                                            <input asp-for="FromName" class="form-control">
+                                            <span asp-validation-for="FromName" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="checkbox-wrapper">
+                                        <input class="checkbox-input" type="checkbox" asp-for="EnableSsl" id="enableSslCheck">
+                                        <label class="checkbox-label" for="enableSslCheck">
+                                            <i class="fas fa-shield-alt"></i> Enable SSL/TLS
+                                        </label>
+                                    </div>
+                                    <small class="form-text">Required for most email providers</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="button-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Settings
+                            </button>
+                            <button type="button" class="btn btn-info" onclick="sendTestEmail()">
+                                <i class="fas fa-paper-plane"></i> Test Email
+                            </button>
+                            <button type="button" class="btn btn-warning" onclick="triggerNotification()">
+                                <i class="fas fa-bell"></i> Check Pending
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Information Panel -->
+                <div class="info-panel">
+                    <div class="info-content">
+                        <div class="info-section">
+                            <h3><i class="fas fa-info-circle"></i> Button Functions</h3>
+                            <div class="mb-2">
+                                <p><strong><i class="fas fa-paper-plane" style="color: #06b6d4;"></i> Test Email:</strong><br>
+                                Sends an immediate test email to verify your SMTP configuration is working correctly.</p>
+                            </div>
+                            <div class="mb-2">
+                                <p><strong><i class="fas fa-bell" style="color: #f59e0b;"></i> Check Pending:</strong><br>
+                                Manually checks for users pending approval longer than 24 hours and sends notification email if any are found. <em>Only sends if users have been waiting 24+ hours.</em></p>
+                            </div>
+                        </div>
+
+                        <div class="info-section">
+                            <h3><i class="fas fa-clock"></i> How It Works</h3>
+                            <p>The notification service automatically runs every 60 minutes, checking for users who have been waiting for approval longer than 24 hours, and sends reminder emails to the admin.</p>
+                        </div>
+
+                        <div class="info-section">
+                            <h3><i class="fas fa-envelope-open"></i> Gmail Setup</h3>
+                            <p><strong>Quick setup steps:</strong></p>
+                            <ol>
+                                <li>Go to Google Account Security</li>
+                                <li>Enable 2-Step Verification</li>
+                                <li>App passwords → Generate new</li>
+                                <li>Select "Mail" → Copy 16-char password</li>
+                                <li>Use that password above (not your regular Gmail password)</li>
+                            </ol>
+                        </div>
+
+                        <div class="info-section">
+                            <h3><i class="fas fa-cogs"></i> Service Status</h3>
+                            <div class="status-indicator">
+                                <span><i class="fas fa-check-circle"></i> Service Running</span>
+                                <span>Every 60 min</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Form functions
+        async function sendTestEmail() {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            button.disabled = true;
+
+            try {
+                const response = await fetch('/Admin/SendTestNotification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    button.innerHTML = '<i class="fas fa-check"></i> Sent!';
+                    button.classList.remove('btn-info');
+                    button.classList.add('btn-success');
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                        button.classList.remove('btn-success');
+                        button.classList.add('btn-info');
+                    }, 3000);
+                } else {
+                    throw new Error('Failed to send email');
+                }
+            } catch (error) {
+                button.innerHTML = '<i class="fas fa-times"></i> Failed';
+                button.classList.remove('btn-info');
+                button.classList.add('btn-danger');
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                    button.classList.remove('btn-danger');
+                    button.classList.add('btn-info');
+                }, 3000);
+            }
+        }
+
+        async function triggerNotification() {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking...';
+            button.disabled = true;
+
+            try {
+                const response = await fetch('/Admin/TriggerPendingNotification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.text();
+                    if (result.includes('No users') || result.includes('0 users')) {
+                        button.innerHTML = '<i class="fas fa-info-circle"></i> None Found';
+                        button.classList.remove('btn-warning');
+                        button.classList.add('btn-secondary');
+                    } else {
+                        button.innerHTML = '<i class="fas fa-check"></i> Sent!';
+                        button.classList.remove('btn-warning');
+                        button.classList.add('btn-success');
+                    }
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                        button.classList.remove('btn-success', 'btn-secondary');
+                        button.classList.add('btn-warning');
+                    }, 3000);
+                } else {
+                    throw new Error('Failed to trigger notification');
+                }
+            } catch (error) {
+                button.innerHTML = '<i class="fas fa-times"></i> Failed';
+                button.classList.remove('btn-warning');
+                button.classList.add('btn-danger');
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                    button.classList.remove('btn-danger');
+                    button.classList.add('btn-warning');
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>

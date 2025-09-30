@@ -1,0 +1,40 @@
+@{
+    ViewData["Title"] = "Create Default Admin";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/create-default-admin.css" />
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Admin Account Setup</h1>
+
+        @if (ViewBag.Message != null)
+        {
+            <div class="@(ViewBag.Success == true ? "success" : "error")">
+                @ViewBag.Message
+            </div>
+        }
+
+        @if (ViewBag.Success == true)
+        {
+            <p>You can now login to the admin panel with the credentials shown above.</p>
+            <a href="@Url.Action("AdminLogin", "Admin")" class="btn">Go to Admin Login</a>
+        }
+        else
+        {
+            <p>Click the button below to create a default admin account:</p>
+            <a href="@Url.Action("CreateDefaultAdmin", "Admin")" class="btn">Create Default Admin</a>
+        }
+
+        <br><br>
+        <a href="@Url.Action("Login", "Account")" class="btn" style="background: #6c757d;">Back to Main Login</a>
+    </div>
+</body>
+</html>

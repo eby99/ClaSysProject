@@ -44,7 +44,8 @@ Log.Logger = loggerConfig.CreateLogger();
 builder.Host.UseSerilog();
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddRazorRuntimeCompilation(); // Enable runtime Razor compilation
 
 // Add API controllers with JSON configuration
 builder.Services.AddControllers()
@@ -83,6 +84,14 @@ builder.Services.AddScoped<IDatabaseLoggerService, DatabaseLoggerService>();
 // Add notification services
 builder.Services.AddScoped<IEmailNotificationService, EmailNotificationService>();
 builder.Services.AddHostedService<PendingApprovalNotificationService>();
+
+// Add CAPTCHA services
+builder.Services.AddHttpClient<ICaptchaService, GoogleReCaptchaService>();
+// Use development CAPTCHA service in development environment (always returns true)
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddScoped<ICaptchaService, DevelopmentCaptchaService>();
+}
 
 // Add HTTP client for API calls with configurable base URL
 builder.Services.AddHttpClient<IUserApiClientService, UserApiClientService>(client =>

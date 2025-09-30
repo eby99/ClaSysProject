@@ -12,13 +12,15 @@ namespace RegistrationPortal.Controllers
         private readonly IPasswordService _passwordService;
         private readonly HybridUserService? _hybridUserService;
         private readonly IEventLoggerService _eventLogger;
+        private readonly ICaptchaService _captchaService;
 
-        public AccountController(IUserService userService, IPasswordService passwordService, IEventLoggerService eventLogger)
+        public AccountController(IUserService userService, IPasswordService passwordService, IEventLoggerService eventLogger, ICaptchaService captchaService)
         {
             _userService = userService;
             _passwordService = passwordService;
             _hybridUserService = userService as HybridUserService;
             _eventLogger = eventLogger;
+            _captchaService = captchaService;
         }
 
         [HttpGet]
@@ -42,6 +44,15 @@ namespace RegistrationPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
+            // Validate CAPTCHA first
+            if (!await _captchaService.VerifyTokenAsync(model.CaptchaResponse ?? string.Empty, HttpContext.Connection.RemoteIpAddress?.ToString()))
+            {
+                ModelState.AddModelError("CaptchaResponse", "Please complete the security verification.");
+                _eventLogger.LogSecurityEvent("Failed CAPTCHA Verification", model.UsernameEmail,
+                    HttpContext.Connection.RemoteIpAddress?.ToString(), "User failed CAPTCHA on login attempt");
+                return View(model);
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -260,10 +271,10 @@ namespace RegistrationPortal.Controllers
             if (Request.Headers.XRequestedWith == "XMLHttpRequest")
             {
                 var errors = ModelState
-                    .Where(x => x.Value.Errors.Count > 0)
+                    .Where(x => x.Value?.Errors.Count > 0)
                     .ToDictionary(
                         kvp => kvp.Key,
-                        kvp => kvp.Value.Errors.First().ErrorMessage
+                        kvp => kvp.Value?.Errors.First()?.ErrorMessage ?? "Validation error"
                     );
 
                 return Json(new {
@@ -566,8 +577,8 @@ namespace RegistrationPortal.Controllers
                 if (Request.Headers.Accept.ToString().Contains("application/json"))
                 {
                     var errors = ModelState
-                        .Where(x => x.Value.Errors.Count > 0)
-                        .Select(x => new { Field = x.Key, Errors = x.Value.Errors.Select(e => e.ErrorMessage) })
+                        .Where(x => x.Value?.Errors.Count > 0)
+                        .Select(x => new { Field = x.Key, Errors = x.Value?.Errors.Select(e => e.ErrorMessage) ?? Enumerable.Empty<string>() })
                         .ToList();
                     return Json(new { success = false, message = "Validation failed.", errors = errors });
                 }

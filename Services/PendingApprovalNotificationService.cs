@@ -185,19 +185,34 @@ namespace RegistrationPortal.Services
                     var json = File.ReadAllText(configPath);
                     var config = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(json);
 
-                    if (!config.ContainsKey("NotificationService"))
-                        config["NotificationService"] = new Dictionary<string, object>();
+                    if (config != null)
+                    {
+                        if (!config.ContainsKey("NotificationService"))
+                            config["NotificationService"] = new Dictionary<string, object>();
 
-                    var notificationService = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(config["NotificationService"].ToString());
+                        var notificationServiceJson = config["NotificationService"]?.ToString();
+                        if (!string.IsNullOrEmpty(notificationServiceJson))
+                        {
+                            var notificationService = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(notificationServiceJson);
+                            if (notificationService != null)
+                            {
+                                if (!notificationService.ContainsKey("LastNotifications"))
+                                    notificationService["LastNotifications"] = new Dictionary<string, object>();
 
-                    if (!notificationService.ContainsKey("LastNotifications"))
-                        notificationService["LastNotifications"] = new Dictionary<string, object>();
-
-                    var lastNotifications = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(notificationService["LastNotifications"].ToString());
-                    lastNotifications[key] = time.ToString("yyyy-MM-ddTHH:mm:ss");
-
-                    notificationService["LastNotifications"] = lastNotifications;
-                    config["NotificationService"] = notificationService;
+                                var lastNotificationsJson = notificationService["LastNotifications"]?.ToString();
+                                if (!string.IsNullOrEmpty(lastNotificationsJson))
+                                {
+                                    var lastNotifications = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(lastNotificationsJson);
+                                    if (lastNotifications != null)
+                                    {
+                                        lastNotifications[key] = time.ToString("yyyy-MM-ddTHH:mm:ss");
+                                        notificationService["LastNotifications"] = lastNotifications;
+                                    }
+                                }
+                                config["NotificationService"] = notificationService;
+                            }
+                        }
+                    }
 
                     var updatedJson = System.Text.Json.JsonSerializer.Serialize(config, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
                     File.WriteAllText(configPath, updatedJson);
